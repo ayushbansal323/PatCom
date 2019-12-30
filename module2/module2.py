@@ -1,12 +1,13 @@
 import PyPDF2
 import regex
 
-# funtion defined in read.py
+
+# function defined in read.py
 def read_document(path):
     """
-	:param path: path of the document
-	:return: returns a list of lines in document
-	"""
+    :param path: path of the document
+    :return: returns a list of lines in document
+    """
     Document_1 = []
 
     fd = open(path, 'rb');
@@ -69,16 +70,15 @@ def features_union(feature_1, feature_2):
     return unique_features
 
 
-def linkage_score(vertex1, vertex2, document_path, count1, count2):
+def linkage_score(vertex1, vertex2, document_lines, count1, count2):
     """
     :param vertex1: feature 1
     :param vertex2: feature 2
-    :param document_path: path to the document file
+    :param document_lines: list containing lines of document
     :param count1: occurrence of feature 1 in the document
     :param count2: occurrence of feature 2 in the document
     :return: linkage score between vertex1 and vertex2
     """
-    document_lines = read_document(document_path)
     count12 = 0
     for line in document_lines:
         if (vertex1 in line) and (vertex2 in line):
@@ -98,14 +98,19 @@ def module2(features1, features2, document_path1, document_path2):
     :return: graph
     """
     features = features_union(features1, features2)
+    document_lines1 = read_document(document_path1)
+    document_lines2 = read_document(document_path2)
     score1 = find_scores(features, document_path1)
     score2 = find_scores(features, document_path2)
     # print(score1)
     # print(score2)
+    count = 0
     for i in range(len(features)):
         for j in range(i + 1, len(features)):
-            print(linkage_score(features[i], features[j], document_path1, score1[features[i]], score1[features[j]]))
-            print(linkage_score(features[i], features[j], document_path2, score2[features[i]], score2[features[j]]))
+            print(linkage_score(features[i], features[j], document_lines1, score1[features[i]], score1[features[j]]))
+            print(linkage_score(features[i], features[j], document_lines2, score2[features[i]], score2[features[j]]))
+            count = count + 1
+    print(count)
 
 
 if __name__ == '__main__':
