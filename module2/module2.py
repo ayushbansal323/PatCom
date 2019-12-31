@@ -1,7 +1,7 @@
 import PyPDF2
 import regex
-
-
+import networkx as nx
+import matplotlib.pyplot as plt
 # function defined in read.py
 def read_document(path):
     """
@@ -42,7 +42,7 @@ def find_scores(features, document_path):
     features_count = {}
 
     for feature in features:
-        features_count[feature] = 0;
+        features_count[feature] = 0
 
     for feature in features:
         for line in document_lines:
@@ -85,7 +85,7 @@ def linkage_score(vertex1, vertex2, document_lines, count1, count2):
             count12 = count12 + 1
     score = 0
     if count12 != 0:
-        score = (2 * (count1 + count2)) / count12
+        score = (2 * count12) / (count1 + count2)
     return score
 
 
@@ -105,12 +105,22 @@ def module2(features1, features2, document_path1, document_path2):
     # print(score1)
     # print(score2)
     count = 0
+    graph = nx.Graph()
     for i in range(len(features)):
         for j in range(i + 1, len(features)):
-            print(linkage_score(features[i], features[j], document_lines1, score1[features[i]], score1[features[j]]))
-            print(linkage_score(features[i], features[j], document_lines2, score2[features[i]], score2[features[j]]))
-            count = count + 1
-    print(count)
+            link_score1 = linkage_score(features[i], features[j], document_lines1, score1[features[i]], score1[features[j]])
+            link_score2 = linkage_score(features[i], features[j], document_lines2, score2[features[i]], score2[features[j]])
+            link_score = (link_score1 + link_score2) / 2
+            if link_score > 0.1:
+                graph.add_edge(features[i], features[j])
+            #print(link_score)
+    nx.draw_networkx(graph, nx.spring_layout(graph))
+    #nx.draw_circular(graph)
+    plt.show()
+    #print(graph.number_of_nodes())
+    #print(graph.number_of_edges())
+
+    return graph
 
 
 if __name__ == '__main__':
