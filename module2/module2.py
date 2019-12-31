@@ -3,7 +3,7 @@ import regex
 import networkx as nx
 import matplotlib.pyplot as plt
 # function defined in read.py
-def read_document(path):
+def read_document2(path):
     """
     :param path: path of the document
     :return: returns a list of lines in document
@@ -38,7 +38,7 @@ def find_scores(features, document_path):
     :param document_path: path where the document is located
     :return: list containing occurrence of each feature in the document
     """
-    document_lines = read_document(document_path)
+    document_lines = read_document2(document_path)
     features_count = {}
 
     for feature in features:
@@ -98,8 +98,8 @@ def module2(features1, features2, document_path1, document_path2):
     :return: graph
     """
     features = features_union(features1, features2)
-    document_lines1 = read_document(document_path1)
-    document_lines2 = read_document(document_path2)
+    document_lines1 = read_document2(document_path1)
+    document_lines2 = read_document2(document_path2)
     score1 = find_scores(features, document_path1)
     score2 = find_scores(features, document_path2)
     # print(score1)
