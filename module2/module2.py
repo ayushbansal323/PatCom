@@ -89,8 +89,9 @@ def linkage_score(vertex1, vertex2, document_lines, count1, count2):
     return score
 
 
-def module2(features1, features2, document_path1, document_path2):
+def module2(features1, features2, document_path1, document_path2, threshold_value):
     """
+    :param threshold_value: the minimum linkage score needed to connect the edges
     :param features1: list containing feature for document 1
     :param features2: list containing feature for document 2
     :param document_path1: path to the document file 1
@@ -111,7 +112,7 @@ def module2(features1, features2, document_path1, document_path2):
             link_score1 = linkage_score(features[i], features[j], document_lines1, score1[features[i]], score1[features[j]])
             link_score2 = linkage_score(features[i], features[j], document_lines2, score2[features[i]], score2[features[j]])
             link_score = (link_score1 + link_score2) / 2
-            if link_score > 0.1:
+            if link_score > threshold_value:
                 graph.add_edge(features[i], features[j])
             #print(link_score)
     nx.draw_networkx(graph, nx.spring_layout(graph))
@@ -128,4 +129,4 @@ if __name__ == '__main__':
     feature2 = ["regulator", "housing", "device", "anti-Scaling", "passage", "openings", "network"]
     document1 = "./Document_1.pdf"
     document2 = "./Document_2.pdf"
-    module2(feature1, feature2, document1, document2)
+    module2(feature1, feature2, document1, document2, 0.1)
