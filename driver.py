@@ -1,7 +1,6 @@
 from module1.chisquare.Extract_Features import module1
 from module1.chisquare.Read import read_document
-
-from module2 import module2
+from module2 import module2_graph
 
 if __name__ == "__main__":
     # Module 1 Part 1
@@ -17,6 +16,8 @@ if __name__ == "__main__":
     print("*"*50)
     print(doc2_feature_dic)
 
+    #module2 calling function replace dic_features with actual features
+    module2_graph.generate_graph(list(doc1_feature_dic.keys()), list(doc2_feature_dic.keys()), "./Document_1.pdf", "./Document_2.pdf", 0.1)
     ###########################################
 
     # Module 1 Part 2

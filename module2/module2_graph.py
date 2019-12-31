@@ -2,6 +2,8 @@ import PyPDF2
 import regex
 import networkx as nx
 import matplotlib.pyplot as plt
+
+
 # function defined in read.py
 def read_document2(path):
     """
@@ -89,7 +91,7 @@ def linkage_score(vertex1, vertex2, document_lines, count1, count2):
     return score
 
 
-def module2(features1, features2, document_path1, document_path2, threshold_value):
+def generate_graph(features1, features2, document_path1, document_path2, threshold_value):
     """
     :param threshold_value: the minimum linkage score needed to connect the edges
     :param features1: list containing feature for document 1
@@ -105,21 +107,22 @@ def module2(features1, features2, document_path1, document_path2, threshold_valu
     score2 = find_scores(features, document_path2)
     # print(score1)
     # print(score2)
-    count = 0
     graph = nx.Graph()
     for i in range(len(features)):
         for j in range(i + 1, len(features)):
-            link_score1 = linkage_score(features[i], features[j], document_lines1, score1[features[i]], score1[features[j]])
-            link_score2 = linkage_score(features[i], features[j], document_lines2, score2[features[i]], score2[features[j]])
+            link_score1 = linkage_score(features[i], features[j], document_lines1, score1[features[i]],
+                                        score1[features[j]])
+            link_score2 = linkage_score(features[i], features[j], document_lines2, score2[features[i]],
+                                        score2[features[j]])
             link_score = (link_score1 + link_score2) / 2
             if link_score > threshold_value:
                 graph.add_edge(features[i], features[j])
-            #print(link_score)
+            # print(link_score)
     nx.draw_networkx(graph, nx.spring_layout(graph))
-    #nx.draw_circular(graph)
+    # nx.draw_circular(graph)
     plt.show()
-    #print(graph.number_of_nodes())
-    #print(graph.number_of_edges())
+    # print(graph.number_of_nodes())
+    # print(graph.number_of_edges())
 
     return graph
 
@@ -129,4 +132,4 @@ if __name__ == '__main__':
     feature2 = ["regulator", "housing", "device", "anti-Scaling", "passage", "openings", "network"]
     document1 = "./Document_1.pdf"
     document2 = "./Document_2.pdf"
-    module2(feature1, feature2, document1, document2, 0.1)
+    generate_graph(feature1, feature2, document1, document2, 0.1)
