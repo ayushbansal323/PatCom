@@ -1,15 +1,15 @@
 from string import punctuation
 from nltk.corpus import stopwords
-# to read from pdf
-import Read as rd
 import sys
 import traceback
 import nltk
 
+# decrese this threshold to increses the number of features
+CHI_THRESHOLD = 0.01
 
 # returns lemmatized nouns in lower case
-def getLemmatizedNouns(doc_name):
-    document = rd.read_document('./' + str(doc_name))
+def getLemmatizedNouns(document):
+    #document = rd.read_document(doc_path)
     # get All nouns from document
     nouns = []
     words = []
@@ -78,7 +78,7 @@ def main():
         print(traceback.format_exc())
 
 
-def chisquare(noun_dict, sumdoc1, sumdoc2):
+def chisquare(noun_dict, sum_doc1, sum_doc2):
     chisq_dict = {}
     for x in noun_dict:
         a = noun_dict[x][0]  # A is the number of times t and c co-occur
@@ -89,17 +89,17 @@ def chisquare(noun_dict, sumdoc1, sumdoc2):
         # d=1
         chi = ((2 * ((a * d) - (c * b)) ** 2) / ((a + c) * (b + d) * (a + b) * (c + d)))
 
-        if chi > 0.01:
-            print(x + " : " + str(chi))
+        if chi > CHI_THRESHOLD:
+            #print(x + " : " + str(chi))
             # print(x)
             chisq_dict[x] = chi
     return chisq_dict
 
 
-if __name__ == "__main__":
+def module1(doc1, doc2):
     # main()
-    nouns_doc1 = getLemmatizedNouns("Document_1.pdf")
-    nouns_doc2 = getLemmatizedNouns("Document_2.pdf")
+    nouns_doc1 = getLemmatizedNouns(doc1)
+    nouns_doc2 = getLemmatizedNouns(doc2)
     # print(nouns_doc1)
     # print(nouns_doc2)
     #
@@ -108,12 +108,12 @@ if __name__ == "__main__":
 
     noun_dict, sum_doc1, sum_doc2 = create_dict(nouns_doc1, nouns_doc2)
 
-    # # dict with chi sq values
-    # print("111111111111111111111")
-    # chi_sq_doc1 = chisquare(noun_dict, sum_doc1, sum_doc2)
-    # print('*'*50)
-    # chi_sq_doc2 = chisquare(noun_dict, sum_doc2, sum_doc1)
-    # print("^"*50)
+    # dict with chi sq values
+    print("Calculating chi-square values for features/nouns... It may take some time...")
+    chi_sq_doc1 = chisquare(noun_dict, sum_doc1, sum_doc2)
+    #print('*'*50)
+    chi_sq_doc2 = chisquare(noun_dict, sum_doc2, sum_doc1)
+    print("^"*50)
 
-    # Trial code from here onwards.
-    from CHI import ChiSquareTest
+    return chi_sq_doc1,chi_sq_doc2
+

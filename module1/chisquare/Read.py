@@ -39,7 +39,7 @@ def read_claims(document):
 	return claims
 
 def main():
-	document = read_document('./Document_1.pdf');
+	document = read_document('../../Document_1.pdf');
 
 	print(document)
 
