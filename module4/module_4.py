@@ -60,7 +60,6 @@ def Create_Summary( graph , common_features , document_1 , document_2 ):
 	'''
 	graph.remove_nodes_from( common_features ) ;
 	edges = list( graph.edges ) ;  
-	
 	summary = [ "" , "" ] ; 
 	text = document_1 ;
 	ret = final_sentences( text , edges ) ;	
