@@ -13,6 +13,7 @@ if __name__ == "__main__":
     import os
     doc1 = read_document("./Document_1.pdf")
     doc2 = read_document("./Document_2.pdf")
+    #print(doc1 , doc2)
     # if needed change threshold in Extract_Features.py
     doc1_feature_dic, doc2_feature_dic, nouns_doc1, nouns_doc2 = module1(doc1, doc2)
     #print(nouns_doc2)
@@ -32,7 +33,6 @@ if __name__ == "__main__":
     nx.draw_networkx(tree, nx.spring_layout(tree))
     # nx.draw_circular(graph)
     plt.show()
-
     #module 4
     print(module_4.Create_Summary(nx.Graph(tree),topfeatures,doc1,doc2))
 
