@@ -115,5 +115,5 @@ def module1(doc1, doc2):
     chi_sq_doc2 = chisquare(noun_dict, sum_doc2, sum_doc1)
     print("^"*50)
 
-    return chi_sq_doc1,chi_sq_doc2
+    return chi_sq_doc1,chi_sq_doc2,nouns_doc1,nouns_doc2
 

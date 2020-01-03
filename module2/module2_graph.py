@@ -118,9 +118,9 @@ def generate_graph(features1, features2, document_path1, document_path2, thresho
             if link_score > threshold_value:
                 graph.add_edge(features[i], features[j])
             # print(link_score)
-    nx.draw_networkx(graph, nx.spring_layout(graph))
+    #nx.draw_networkx(graph, nx.spring_layout(graph))
     # nx.draw_circular(graph)
-    plt.show()
+    #plt.show()
     # print(graph.number_of_nodes())
     # print(graph.number_of_edges())
 
