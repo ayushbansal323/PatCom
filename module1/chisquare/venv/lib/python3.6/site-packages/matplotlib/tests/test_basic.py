@@ -1,9 +1,10 @@
 import builtins
+import os
 import subprocess
 import sys
+import textwrap
 
 import matplotlib
-from matplotlib.cbook import dedent
 
 
 def test_simple():
@@ -36,7 +37,7 @@ def test_override_builtins():
 
 
 def test_lazy_imports():
-    source = dedent("""
+    source = textwrap.dedent("""
     import sys
 
     import matplotlib.figure
@@ -50,8 +51,6 @@ def test_lazy_imports():
     assert 'urllib.request' not in sys.modules
     """)
 
-    subprocess.check_call([
-        sys.executable,
-        '-c',
-        source
-    ])
+    subprocess.check_call(
+        [sys.executable, '-c', source],
+        env={**os.environ, "MPLBACKEND": "", "MATPLOTLIBRC": os.devnull})

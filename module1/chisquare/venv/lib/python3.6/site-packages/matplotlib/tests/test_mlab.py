@@ -1,9 +1,7 @@
 import tempfile
-import warnings
 
 from numpy.testing import (assert_allclose, assert_almost_equal,
                            assert_array_equal, assert_array_almost_equal_nulp)
-import numpy.ma.testutils as matest
 import numpy as np
 import datetime as datetime
 import pytest
@@ -12,15 +10,12 @@ import matplotlib.mlab as mlab
 from matplotlib.cbook.deprecation import MatplotlibDeprecationWarning
 
 
-'''
-A lot of mlab.py has been deprecated in Matplotlib 2.2 and is scheduled for
-removal in the future. The tests that use deprecated methods have a block
-to catch the deprecation warning, and can be removed with the mlab code is
-removed.
-'''
+def _stride_repeat(*args, **kwargs):
+    with pytest.warns(MatplotlibDeprecationWarning):
+        return mlab.stride_repeat(*args, **kwargs)
 
 
-class TestStride(object):
+class TestStride:
     def get_base(self, x):
         y = x
         while y.base is not None:
@@ -63,7 +58,7 @@ class TestStride(object):
     def test_stride_repeat_invalid_input_shape(self, shape):
         x = np.arange(np.prod(shape)).reshape(shape)
         with pytest.raises(ValueError):
-            mlab.stride_repeat(x, 5)
+            _stride_repeat(x, 5)
 
     @pytest.mark.parametrize('axis', [-1, 2],
                              ids=['axis less than 0',
@@ -71,18 +66,18 @@ class TestStride(object):
     def test_stride_repeat_invalid_axis(self, axis):
         x = np.array(0)
         with pytest.raises(ValueError):
-            mlab.stride_repeat(x, 5, axis=axis)
+            _stride_repeat(x, 5, axis=axis)
 
     def test_stride_repeat_n_lt_1_ValueError(self):
         x = np.arange(10)
         with pytest.raises(ValueError):
-            mlab.stride_repeat(x, 0)
+            _stride_repeat(x, 0)
 
     @pytest.mark.parametrize('axis', [0, 1], ids=['axis0', 'axis1'])
     @pytest.mark.parametrize('n', [1, 5], ids=['n1', 'n5'])
     def test_stride_repeat(self, n, axis):
         x = np.arange(10)
-        y = mlab.stride_repeat(x, n, axis=axis)
+        y = _stride_repeat(x, n, axis=axis)
 
         expected_shape = [10, 10]
         expected_shape[axis] = n
@@ -139,7 +134,7 @@ class TestStride(object):
         # even previous to #3845 could not find any problematic
         # configuration however, let's be sure it's not accidentally
         # introduced
-        y_strided = mlab.stride_repeat(y, n=33.815)
+        y_strided = _stride_repeat(y, n=33.815)
         assert_array_equal(y_strided, 0.3)
 
 
@@ -189,7 +184,12 @@ def test_csv2rec_dates(tempcsv, input, kwargs):
     assert_array_equal(array['a'].tolist(), expected)
 
 
-class TestWindow(object):
+def _apply_window(*args, **kwargs):
+    with pytest.warns(MatplotlibDeprecationWarning):
+        return mlab.apply_window(*args, **kwargs)
+
+
+class TestWindow:
     def setup(self):
         np.random.seed(0)
         n = 1000
@@ -240,31 +240,31 @@ class TestWindow(object):
         x = self.sig_rand
         window = mlab.window_hanning
         with pytest.raises(ValueError):
-            mlab.apply_window(x, window, axis=1, return_window=False)
+            _apply_window(x, window, axis=1, return_window=False)
 
     def test_apply_window_1D_els_wrongsize_ValueError(self):
         x = self.sig_rand
         window = mlab.window_hanning(np.ones(x.shape[0]-1))
         with pytest.raises(ValueError):
-            mlab.apply_window(x, window)
+            _apply_window(x, window)
 
     def test_apply_window_0D_ValueError(self):
         x = np.array(0)
         window = mlab.window_hanning
         with pytest.raises(ValueError):
-            mlab.apply_window(x, window, axis=1, return_window=False)
+            _apply_window(x, window, axis=1, return_window=False)
 
     def test_apply_window_3D_ValueError(self):
         x = self.sig_rand[np.newaxis][np.newaxis]
         window = mlab.window_hanning
         with pytest.raises(ValueError):
-            mlab.apply_window(x, window, axis=1, return_window=False)
+            _apply_window(x, window, axis=1, return_window=False)
 
     def test_apply_window_hanning_1D(self):
         x = self.sig_rand
         window = mlab.window_hanning
         window1 = mlab.window_hanning(np.ones(x.shape[0]))
-        y, window2 = mlab.apply_window(x, window, return_window=True)
+        y, window2 = _apply_window(x, window, return_window=True)
         yt = window(x)
         assert yt.shape == y.shape
         assert x.shape == y.shape
@@ -274,7 +274,7 @@ class TestWindow(object):
     def test_apply_window_hanning_1D_axis0(self):
         x = self.sig_rand
         window = mlab.window_hanning
-        y = mlab.apply_window(x, window, axis=0, return_window=False)
+        y = _apply_window(x, window, axis=0, return_window=False)
         yt = window(x)
         assert yt.shape == y.shape
         assert x.shape == y.shape
@@ -284,7 +284,7 @@ class TestWindow(object):
         x = self.sig_rand
         window = mlab.window_hanning(np.ones(x.shape[0]))
         window1 = mlab.window_hanning
-        y = mlab.apply_window(x, window, axis=0, return_window=False)
+        y = _apply_window(x, window, axis=0, return_window=False)
         yt = window1(x)
         assert yt.shape == y.shape
         assert x.shape == y.shape
@@ -293,7 +293,7 @@ class TestWindow(object):
     def test_apply_window_hanning_2D_axis0(self):
         x = np.random.standard_normal([1000, 10]) + 100.
         window = mlab.window_hanning
-        y = mlab.apply_window(x, window, axis=0, return_window=False)
+        y = _apply_window(x, window, axis=0, return_window=False)
         yt = np.zeros_like(x)
         for i in range(x.shape[1]):
             yt[:, i] = window(x[:, i])
@@ -305,7 +305,7 @@ class TestWindow(object):
         x = np.random.standard_normal([1000, 10]) + 100.
         window = mlab.window_hanning(np.ones(x.shape[0]))
         window1 = mlab.window_hanning
-        y = mlab.apply_window(x, window, axis=0, return_window=False)
+        y = _apply_window(x, window, axis=0, return_window=False)
         yt = np.zeros_like(x)
         for i in range(x.shape[1]):
             yt[:, i] = window1(x[:, i])
@@ -317,7 +317,7 @@ class TestWindow(object):
         x = np.random.standard_normal([1000, 10]) + 100.
         window = mlab.window_hanning
         window1 = mlab.window_hanning(np.ones(x.shape[0]))
-        y, window2 = mlab.apply_window(x, window, axis=0, return_window=True)
+        y, window2 = _apply_window(x, window, axis=0, return_window=True)
         yt = np.zeros_like(x)
         for i in range(x.shape[1]):
             yt[:, i] = window1*x[:, i]
@@ -330,8 +330,8 @@ class TestWindow(object):
         x = np.random.standard_normal([1000, 10]) + 100.
         window = mlab.window_hanning
         window1 = mlab.window_hanning(np.ones(x.shape[0]))
-        y, window2 = mlab.apply_window(x, window, axis=0, return_window=True)
-        yt = mlab.apply_window(x, window1, axis=0, return_window=False)
+        y, window2 = _apply_window(x, window, axis=0, return_window=True)
+        yt = _apply_window(x, window1, axis=0, return_window=False)
         assert yt.shape == y.shape
         assert x.shape == y.shape
         assert_allclose(yt, y, atol=1e-06)
@@ -340,7 +340,7 @@ class TestWindow(object):
     def test_apply_window_hanning_2D_axis1(self):
         x = np.random.standard_normal([10, 1000]) + 100.
         window = mlab.window_hanning
-        y = mlab.apply_window(x, window, axis=1, return_window=False)
+        y = _apply_window(x, window, axis=1, return_window=False)
         yt = np.zeros_like(x)
         for i in range(x.shape[0]):
             yt[i, :] = window(x[i, :])
@@ -352,7 +352,7 @@ class TestWindow(object):
         x = np.random.standard_normal([10, 1000]) + 100.
         window = mlab.window_hanning(np.ones(x.shape[1]))
         window1 = mlab.window_hanning
-        y = mlab.apply_window(x, window, axis=1, return_window=False)
+        y = _apply_window(x, window, axis=1, return_window=False)
         yt = np.zeros_like(x)
         for i in range(x.shape[0]):
             yt[i, :] = window1(x[i, :])
@@ -364,7 +364,7 @@ class TestWindow(object):
         x = np.random.standard_normal([10, 1000]) + 100.
         window = mlab.window_hanning
         window1 = mlab.window_hanning(np.ones(x.shape[1]))
-        y, window2 = mlab.apply_window(x, window, axis=1, return_window=True)
+        y, window2 = _apply_window(x, window, axis=1, return_window=True)
         yt = np.zeros_like(x)
         for i in range(x.shape[0]):
             yt[i, :] = window1 * x[i, :]
@@ -377,8 +377,8 @@ class TestWindow(object):
         x = np.random.standard_normal([10, 1000]) + 100.
         window = mlab.window_hanning
         window1 = mlab.window_hanning(np.ones(x.shape[1]))
-        y = mlab.apply_window(x, window, axis=1, return_window=False)
-        yt = mlab.apply_window(x, window1, axis=1, return_window=False)
+        y = _apply_window(x, window, axis=1, return_window=False)
+        yt = _apply_window(x, window1, axis=1, return_window=False)
         assert yt.shape == y.shape
         assert x.shape == y.shape
         assert_allclose(yt, y, atol=1e-06)
@@ -387,7 +387,7 @@ class TestWindow(object):
         x = self.sig_rand
         window = mlab.window_hanning
         yi = mlab.stride_windows(x, n=13, noverlap=2, axis=0)
-        y = mlab.apply_window(yi, window, axis=0, return_window=False)
+        y = _apply_window(yi, window, axis=0, return_window=False)
         yt = self.check_window_apply_repeat(x, window, 13, 2)
         assert yt.shape == y.shape
         assert x.shape != y.shape
@@ -397,28 +397,28 @@ class TestWindow(object):
         ydata = np.arange(32)
         ydata1 = ydata+5
         ydata2 = ydata+3.3
-        ycontrol1 = mlab.apply_window(ydata1, mlab.window_hanning)
+        ycontrol1 = _apply_window(ydata1, mlab.window_hanning)
         ycontrol2 = mlab.window_hanning(ydata2)
         ydata = np.vstack([ydata1, ydata2])
         ycontrol = np.vstack([ycontrol1, ycontrol2])
         ydata = np.tile(ydata, (20, 1))
         ycontrol = np.tile(ycontrol, (20, 1))
-        result = mlab.apply_window(ydata, mlab.window_hanning, axis=1,
-                                   return_window=False)
+        result = _apply_window(ydata, mlab.window_hanning, axis=1,
+                               return_window=False)
         assert_allclose(ycontrol, result, atol=1e-08)
 
     def test_apply_window_hanning_2D_stack_windows_axis1(self):
         ydata = np.arange(32)
         ydata1 = ydata+5
         ydata2 = ydata+3.3
-        ycontrol1 = mlab.apply_window(ydata1, mlab.window_hanning)
+        ycontrol1 = _apply_window(ydata1, mlab.window_hanning)
         ycontrol2 = mlab.window_hanning(ydata2)
         ydata = np.vstack([ydata1, ydata2])
         ycontrol = np.vstack([ycontrol1, ycontrol2])
         ydata = np.tile(ydata, (20, 1))
         ycontrol = np.tile(ycontrol, (20, 1))
-        result = mlab.apply_window(ydata, mlab.window_hanning, axis=1,
-                                   return_window=False)
+        result = _apply_window(ydata, mlab.window_hanning, axis=1,
+                               return_window=False)
         assert_allclose(ycontrol, result, atol=1e-08)
 
     def test_apply_window_hanning_2D_stack_windows_axis1_unflatten(self):
@@ -426,7 +426,7 @@ class TestWindow(object):
         ydata = np.arange(n)
         ydata1 = ydata+5
         ydata2 = ydata+3.3
-        ycontrol1 = mlab.apply_window(ydata1, mlab.window_hanning)
+        ycontrol1 = _apply_window(ydata1, mlab.window_hanning)
         ycontrol2 = mlab.window_hanning(ydata2)
         ydata = np.vstack([ydata1, ydata2])
         ycontrol = np.vstack([ycontrol1, ycontrol2])
@@ -434,12 +434,12 @@ class TestWindow(object):
         ycontrol = np.tile(ycontrol, (20, 1))
         ydata = ydata.flatten()
         ydata1 = mlab.stride_windows(ydata, 32, noverlap=0, axis=0)
-        result = mlab.apply_window(ydata1, mlab.window_hanning, axis=0,
-                                   return_window=False)
+        result = _apply_window(ydata1, mlab.window_hanning, axis=0,
+                               return_window=False)
         assert_allclose(ycontrol.T, result, atol=1e-08)
 
 
-class TestDetrend(object):
+class TestDetrend:
     def setup(self):
         np.random.seed(0)
         n = 1000
@@ -465,31 +465,31 @@ class TestDetrend(object):
     def test_detrend_none_0D_zeros(self):
         input = 0.
         targ = input
-        res = mlab.detrend_none(input)
+        mlab.detrend_none(input)
         assert input == targ
 
     def test_detrend_none_0D_zeros_axis1(self):
         input = 0.
         targ = input
-        res = mlab.detrend_none(input, axis=1)
+        mlab.detrend_none(input, axis=1)
         assert input == targ
 
     def test_detrend_str_none_0D_zeros(self):
         input = 0.
         targ = input
-        res = mlab.detrend(input, key='none')
+        mlab.detrend(input, key='none')
         assert input == targ
 
     def test_detrend_detrend_none_0D_zeros(self):
         input = 0.
         targ = input
-        res = mlab.detrend(input, key=mlab.detrend_none)
+        mlab.detrend(input, key=mlab.detrend_none)
         assert input == targ
 
     def test_detrend_none_0D_off(self):
         input = 5.5
         targ = input
-        res = mlab.detrend_none(input)
+        mlab.detrend_none(input)
         assert input == targ
 
     def test_detrend_none_1D_off(self):
@@ -909,7 +909,8 @@ class TestDetrend(object):
 
     def test_demean_1D_d1_ValueError(self):
         input = self.sig_slope
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError), \
+             pytest.warns(MatplotlibDeprecationWarning):
             mlab.demean(input, axis=1)
 
     def test_detrend_mean_2D_d2_ValueError(self):
@@ -924,7 +925,8 @@ class TestDetrend(object):
 
     def test_demean_2D_d2_ValueError(self):
         input = self.sig_slope[np.newaxis]
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError), \
+             pytest.warns(MatplotlibDeprecationWarning):
             mlab.demean(input, axis=2)
 
     def test_detrend_linear_0D_zeros(self):
@@ -1074,7 +1076,7 @@ class TestDetrend(object):
         'nosig_overlap',
     ],
     scope='class')
-class TestSpectral(object):
+class TestSpectral:
     @pytest.fixture(scope='class', autouse=True)
     def stim(self, request, fstims, iscomplex, sides, len_x, NFFT_density,
              nover_density, pad_to_density, pad_to_spectrum):
@@ -1121,7 +1123,7 @@ class TestSpectral(object):
             NFFT_spectrum_real = NFFT_spectrum = pad_to_spectrum_real
         else:
             NFFT_spectrum_real = NFFT_spectrum = len(x)
-        nover_spectrum_real = nover_spectrum = 0
+        nover_spectrum = 0
 
         NFFT_specgram = NFFT_density
         nover_specgram = nover_density
@@ -1373,7 +1375,7 @@ class TestSpectral(object):
         assert spec.shape == freqs.shape
 
     def test_csd_padding(self):
-        """Test zero padding of csd(). """
+        """Test zero padding of csd()."""
         if self.NFFT_density is None:  # for derived classes
             return
         sargs = dict(x=self.y, y=self.y+1, Fs=self.Fs, window=mlab.window_none,
@@ -1398,7 +1400,6 @@ class TestSpectral(object):
     def test_psd_detrend_mean_func_offset(self):
         if self.NFFT_density is None:
             return
-        freqs = self.freqs_density
         ydata = np.zeros(self.NFFT_density)
         ydata1 = ydata+5
         ydata2 = ydata+3.3
@@ -1434,7 +1435,6 @@ class TestSpectral(object):
     def test_psd_detrend_mean_str_offset(self):
         if self.NFFT_density is None:
             return
-        freqs = self.freqs_density
         ydata = np.zeros(self.NFFT_density)
         ydata1 = ydata+5
         ydata2 = ydata+3.3
@@ -1470,7 +1470,6 @@ class TestSpectral(object):
     def test_psd_detrend_linear_func_trend(self):
         if self.NFFT_density is None:
             return
-        freqs = self.freqs_density
         ydata = np.arange(self.NFFT_density)
         ydata1 = ydata+5
         ydata2 = ydata+3.3
@@ -1506,7 +1505,6 @@ class TestSpectral(object):
     def test_psd_detrend_linear_str_trend(self):
         if self.NFFT_density is None:
             return
-        freqs = self.freqs_density
         ydata = np.arange(self.NFFT_density)
         ydata1 = ydata+5
         ydata2 = ydata+3.3
@@ -1542,13 +1540,12 @@ class TestSpectral(object):
     def test_psd_window_hanning(self):
         if self.NFFT_density is None:
             return
-        freqs = self.freqs_density
         ydata = np.arange(self.NFFT_density)
         ydata1 = ydata+5
         ydata2 = ydata+3.3
-        ycontrol1, windowVals = mlab.apply_window(ydata1,
-                                                  mlab.window_hanning,
-                                                  return_window=True)
+        ycontrol1, windowVals = _apply_window(ydata1,
+                                              mlab.window_hanning,
+                                              return_window=True)
         ycontrol2 = mlab.window_hanning(ydata2)
         ydata = np.vstack([ydata1, ydata2])
         ycontrol = np.vstack([ycontrol1, ycontrol2])
@@ -1586,16 +1583,15 @@ class TestSpectral(object):
     def test_psd_window_hanning_detrend_linear(self):
         if self.NFFT_density is None:
             return
-        freqs = self.freqs_density
         ydata = np.arange(self.NFFT_density)
         ycontrol = np.zeros(self.NFFT_density)
         ydata1 = ydata+5
         ydata2 = ydata+3.3
         ycontrol1 = ycontrol
         ycontrol2 = ycontrol
-        ycontrol1, windowVals = mlab.apply_window(ycontrol1,
-                                                  mlab.window_hanning,
-                                                  return_window=True)
+        ycontrol1, windowVals = _apply_window(ycontrol1,
+                                              mlab.window_hanning,
+                                              return_window=True)
         ycontrol2 = mlab.window_hanning(ycontrol2)
         ydata = np.vstack([ydata1, ydata2])
         ycontrol = np.vstack([ycontrol1, ycontrol2])
@@ -1645,7 +1641,6 @@ class TestSpectral(object):
         assert spec.shape == freqs.shape
 
     def test_psd_windowarray_scale_by_freq(self):
-        freqs = self.freqs_density
         win = mlab.window_hanning(np.ones(self.NFFT_density_real))
 
         spec, fsp = mlab.psd(x=self.y,
@@ -1834,7 +1829,6 @@ class TestSpectral(object):
                                      pad_to=self.pad_to_specgram,
                                      sides=self.sides,
                                      mode='angle')
-        specm = np.mean(spec, axis=1)
         assert_allclose(fsp, freqs, atol=1e-06)
         assert_allclose(t, self.t_specgram, atol=1e-06)
 
@@ -1850,8 +1844,6 @@ class TestSpectral(object):
                                      pad_to=self.pad_to_specgram,
                                      sides=self.sides,
                                      mode='phase')
-        specm = np.mean(spec, axis=1)
-
         assert_allclose(fsp, freqs, atol=1e-06)
         assert_allclose(t, self.t_specgram, atol=1e-06)
 
@@ -1859,16 +1851,11 @@ class TestSpectral(object):
         assert spec.shape[1] == self.t_specgram.shape[0]
 
     def test_specgram_warn_only1seg(self):
-        """Warning should be raised if len(x) <= NFFT. """
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always", category=UserWarning)
+        """Warning should be raised if len(x) <= NFFT."""
+        with pytest.warns(UserWarning, match="Only one segment is calculated"):
             mlab.specgram(x=self.y, NFFT=len(self.y), Fs=self.Fs)
-        assert len(w) == 1
-        assert issubclass(w[0].category, UserWarning)
-        assert str(w[0].message).startswith("Only one segment is calculated")
 
     def test_psd_csd_equal(self):
-        freqs = self.freqs_density
         Pxx, freqsxx = mlab.psd(x=self.y,
                                 NFFT=self.NFFT_density,
                                 Fs=self.Fs,
@@ -1887,7 +1874,6 @@ class TestSpectral(object):
     def test_specgram_auto_default_equal(self):
         '''test that mlab.specgram without mode and with mode 'default' and
         'psd' are all the same'''
-        freqs = self.freqs_specgram
         speca, freqspeca, ta = mlab.specgram(x=self.y,
                                              NFFT=self.NFFT_specgram,
                                              Fs=self.Fs,
@@ -1908,7 +1894,6 @@ class TestSpectral(object):
     def test_specgram_auto_psd_equal(self):
         '''test that mlab.specgram without mode and with mode 'default' and
         'psd' are all the same'''
-        freqs = self.freqs_specgram
         speca, freqspeca, ta = mlab.specgram(x=self.y,
                                              NFFT=self.NFFT_specgram,
                                              Fs=self.Fs,
@@ -1927,7 +1912,6 @@ class TestSpectral(object):
         assert_array_equal(ta, tc)
 
     def test_specgram_complex_mag_equivalent(self):
-        freqs = self.freqs_specgram
         specc, freqspecc, tc = mlab.specgram(x=self.y,
                                              NFFT=self.NFFT_specgram,
                                              Fs=self.Fs,
@@ -1948,7 +1932,6 @@ class TestSpectral(object):
         assert_allclose(np.abs(specc), specm, atol=1e-06)
 
     def test_specgram_complex_angle_equivalent(self):
-        freqs = self.freqs_specgram
         specc, freqspecc, tc = mlab.specgram(x=self.y,
                                              NFFT=self.NFFT_specgram,
                                              Fs=self.Fs,
@@ -1969,7 +1952,6 @@ class TestSpectral(object):
         assert_allclose(np.angle(specc), speca, atol=1e-06)
 
     def test_specgram_complex_phase_equivalent(self):
-        freqs = self.freqs_specgram
         specc, freqspecc, tc = mlab.specgram(x=self.y,
                                              NFFT=self.NFFT_specgram,
                                              Fs=self.Fs,
@@ -1991,7 +1973,6 @@ class TestSpectral(object):
                         atol=1e-06)
 
     def test_specgram_angle_phase_equivalent(self):
-        freqs = self.freqs_specgram
         speca, freqspeca, ta = mlab.specgram(x=self.y,
                                              NFFT=self.NFFT_specgram,
                                              Fs=self.Fs,
@@ -2013,7 +1994,6 @@ class TestSpectral(object):
                         atol=1e-06)
 
     def test_psd_windowarray_equal(self):
-        freqs = self.freqs_density
         win = mlab.window_hanning(np.ones(self.NFFT_density_real))
         speca, fspa = mlab.psd(x=self.y,
                                NFFT=self.NFFT_density,
@@ -2052,7 +2032,7 @@ def test_cohere():
 # https://github.com/scipy/scipy/blob/master/scipy/stats/tests/test_kdeoth.py
 #*****************************************************************
 
-class TestGaussianKDE(object):
+class TestGaussianKDE:
 
     def test_kde_integer_input(self):
         """Regression test for #1181."""
@@ -2097,7 +2077,7 @@ class TestGaussianKDE(object):
         assert kdepdf.all() == kdepdf3.all()
 
 
-class TestGaussianKDECustom(object):
+class TestGaussianKDECustom:
     def test_no_data(self):
         """Pass no data into the GaussianKDE class."""
         with pytest.raises(ValueError):
@@ -2186,7 +2166,7 @@ class TestGaussianKDECustom(object):
             mlab.GaussianKDE(data, bw_method="invalid")
 
 
-class TestGaussianKDEEvaluate(object):
+class TestGaussianKDEEvaluate:
 
     def test_evaluate_diff_dim(self):
         """
@@ -2204,8 +2184,8 @@ class TestGaussianKDEEvaluate(object):
 
     def test_evaluate_inv_dim(self):
         """
-        Invert the dimensions; i.e., for a dataset of dimension 1 [3,2,4], the
-        points should have a dimension of 3 [[3],[2],[4]].
+        Invert the dimensions; i.e., for a dataset of dimension 1 [3, 2, 4],
+        the points should have a dimension of 3 [[3], [2], [4]].
         """
         np.random.seed(8765678)
         n_basesample = 50

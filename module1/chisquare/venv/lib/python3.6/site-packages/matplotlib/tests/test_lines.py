@@ -20,7 +20,7 @@ from matplotlib.testing.decorators import image_comparison, check_figures_equal
 @pytest.mark.flaky(reruns=3)
 def test_invisible_Line_rendering():
     """
-    Github issue #1256 identified a bug in Line.draw method
+    GitHub issue #1256 identified a bug in Line.draw method
 
     Despite visibility attribute set to False, the draw method was not
     returning early enough and some pre-rendering code was executed
@@ -64,16 +64,13 @@ def test_invisible_Line_rendering():
 def test_set_line_coll_dash():
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
-
     np.random.seed(0)
     # Testing setting linestyles for line collections.
     # This should not produce an error.
-    cs = ax.contour(np.random.randn(20, 30), linestyles=[(0, (3, 3))])
-
-    assert True
+    ax.contour(np.random.randn(20, 30), linestyles=[(0, (3, 3))])
 
 
-@image_comparison(baseline_images=['line_dashes'], remove_text=True)
+@image_comparison(['line_dashes'], remove_text=True)
 def test_line_dashes():
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
@@ -90,7 +87,6 @@ def test_line_colors():
     ax.plot(range(10), color=(1, 0, 0, 1))
     ax.plot(range(10), color=(1, 0, 0))
     fig.canvas.draw()
-    assert True
 
 
 def test_linestyle_variants():
@@ -99,9 +95,7 @@ def test_linestyle_variants():
     for ls in ["-", "solid", "--", "dashed",
                "-.", "dashdot", ":", "dotted"]:
         ax.plot(range(10), linestyle=ls)
-
     fig.canvas.draw()
-    assert True
 
 
 def test_valid_linestyles():
@@ -110,8 +104,7 @@ def test_valid_linestyles():
         line.set_linestyle('aardvark')
 
 
-@image_comparison(baseline_images=['drawstyle_variants'], remove_text=True,
-                  extensions=["png"])
+@image_comparison(['drawstyle_variants.png'], remove_text=True)
 def test_drawstyle_variants():
     fig, axs = plt.subplots(6)
     dss = ["default", "steps-mid", "steps-pre", "steps-post", "steps", None]
@@ -143,18 +136,15 @@ def test_set_drawstyle():
     assert len(line.get_path().vertices) == len(x)
 
 
-@image_comparison(baseline_images=['line_collection_dashes'],
-                  remove_text=True, style='mpl20')
+@image_comparison(['line_collection_dashes'], remove_text=True, style='mpl20')
 def test_set_line_coll_dash_image():
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
-
     np.random.seed(0)
-    cs = ax.contour(np.random.randn(20, 30), linestyles=[(0, (3, 3))])
+    ax.contour(np.random.randn(20, 30), linestyles=[(0, (3, 3))])
 
 
-@image_comparison(baseline_images=['marker_fill_styles'], remove_text=True,
-                  extensions=['png'])
+@image_comparison(['marker_fill_styles.png'], remove_text=True)
 def test_marker_fill_styles():
     colors = itertools.cycle([[0, 0, 1], 'g', '#ff0000', 'c', 'm', 'y',
                               np.array([0, 0, 0])])
@@ -182,7 +172,7 @@ def test_marker_fill_styles():
     ax.set_xlim([-5, 155])
 
 
-@image_comparison(baseline_images=['scaled_lines'], style='default')
+@image_comparison(['scaled_lines'], style='default')
 def test_lw_scaling():
     th = np.linspace(0, 32)
     fig, ax = plt.subplots()

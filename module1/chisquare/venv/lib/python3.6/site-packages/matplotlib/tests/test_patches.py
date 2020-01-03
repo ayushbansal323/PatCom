@@ -18,7 +18,7 @@ on_win = (sys.platform == 'win32')
 
 
 def test_Polygon_close():
-    #: Github issue #1018 identified a bug in the Polygon handling
+    #: GitHub issue #1018 identified a bug in the Polygon handling
     #: of the closed attribute; the path was not getting closed
     #: when set_xy was used to set the vertices.
 
@@ -84,7 +84,7 @@ def test_negative_rect():
     assert_array_equal(np.roll(neg_vertices, 2, 0), pos_vertices)
 
 
-@image_comparison(baseline_images=['clip_to_bbox'])
+@image_comparison(['clip_to_bbox'])
 def test_clip_to_bbox():
     fig = plt.figure()
 
@@ -114,7 +114,7 @@ def test_clip_to_bbox():
     ax.add_patch(result_patch)
 
 
-@image_comparison(baseline_images=['patch_alpha_coloring'], remove_text=True)
+@image_comparison(['patch_alpha_coloring'], remove_text=True)
 def test_patch_alpha_coloring():
     """
     Test checks that the patch and collection are rendered with the specified
@@ -145,7 +145,7 @@ def test_patch_alpha_coloring():
     ax.set_ylim([-1, 2])
 
 
-@image_comparison(baseline_images=['patch_alpha_override'], remove_text=True)
+@image_comparison(['patch_alpha_override'], remove_text=True)
 def test_patch_alpha_override():
     #: Test checks that specifying an alpha attribute for a patch or
     #: collection will override any alpha component of the facecolor
@@ -185,8 +185,7 @@ def test_patch_color_none():
     assert c.get_facecolor()[0] == 0
 
 
-@image_comparison(baseline_images=['patch_custom_linestyle'],
-                  remove_text=True)
+@image_comparison(['patch_custom_linestyle'], remove_text=True)
 def test_patch_custom_linestyle():
     #: A test to check that patches and collections accept custom dash
     #: patterns as linestyle and that they display correctly.
@@ -217,7 +216,7 @@ def test_patch_custom_linestyle():
 
 def test_patch_linestyle_accents():
     #: Test if linestyle can also be specified with short mnemonics like "--"
-    #: c.f. Github issue #2136
+    #: c.f. GitHub issue #2136
     star = mpath.Path.unit_regular_star(6)
     circle = mpath.Path.unit_circle()
     # concatenate the star with an internal cutout of the circle
@@ -240,7 +239,6 @@ def test_patch_linestyle_accents():
     ax.set_xlim([-1, i + 1])
     ax.set_ylim([-1, i + 1])
     fig.canvas.draw()
-    assert True
 
 
 def test_wedge_movement():
@@ -260,8 +258,7 @@ def test_wedge_movement():
 
 
 # png needs tol>=0.06, pdf tol>=1.617
-@image_comparison(baseline_images=['wedge_range'],
-                  remove_text=True, tol=1.65 if on_win else 0)
+@image_comparison(['wedge_range'], remove_text=True, tol=1.65 if on_win else 0)
 def test_wedge_range():
     ax = plt.axes()
 
@@ -344,16 +341,11 @@ def test_patch_str():
     s = mpatches.Shadow(p, 1, 1)
     assert str(s) == "Shadow(ConnectionPatch((1, 2), (3, 4)))"
 
-    with pytest.warns(MatplotlibDeprecationWarning):
-        p = mpatches.YAArrow(plt.gcf(), (1, 0), (2, 1), width=0.1)
-        assert str(p) == "YAArrow()"
-
     # Not testing Arrow, FancyArrow here
     # because they seem to exist only for historical reasons.
 
 
-@image_comparison(baseline_images=['multi_color_hatch'],
-                  remove_text=True, style='default')
+@image_comparison(['multi_color_hatch'], remove_text=True, style='default')
 def test_multi_color_hatch():
     fig, ax = plt.subplots()
 
@@ -363,13 +355,16 @@ def test_multi_color_hatch():
         rect.set_edgecolor('C{}'.format(i))
         rect.set_hatch('/')
 
+    ax.autoscale_view()
+    ax.autoscale(False)
+
     for i in range(5):
         with mstyle.context({'hatch.color': 'C{}'.format(i)}):
             r = Rectangle((i - .8 / 2, 5), .8, 1, hatch='//', fc='none')
         ax.add_patch(r)
 
 
-@image_comparison(baseline_images=['units_rectangle'], extensions=['png'])
+@image_comparison(['units_rectangle.png'])
 def test_units_rectangle():
     import matplotlib.testing.jpl_units as U
     U.register()
@@ -382,8 +377,7 @@ def test_units_rectangle():
     ax.set_ylim([5*U.km, 9*U.km])
 
 
-@image_comparison(baseline_images=['connection_patch'], extensions=['png'],
-                  style='mpl20', remove_text=True)
+@image_comparison(['connection_patch.png'], style='mpl20', remove_text=True)
 def test_connection_patch():
     fig, (ax1, ax2) = plt.subplots(1, 2)
 

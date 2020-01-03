@@ -1,15 +1,16 @@
+from datetime import datetime
+import platform
 from unittest.mock import MagicMock
 
 import matplotlib.pyplot as plt
-from matplotlib.testing.decorators import image_comparison
+from matplotlib.testing.decorators import check_figures_equal, image_comparison
 import matplotlib.units as munits
 import numpy as np
-import platform
 import pytest
 
 
 # Basic class that wraps numpy array and has units
-class Quantity(object):
+class Quantity:
     def __init__(self, data, units):
         self.magnitude = data
         self.units = units
@@ -72,10 +73,12 @@ def quantity_converter():
 
 # Tests that the conversion machinery works properly for classes that
 # work as a facade over numpy arrays (like pint)
-@image_comparison(baseline_images=['plot_pint'],
-                  tol={'aarch64': 0.02}.get(platform.machine(), 0.0),
-                  extensions=['png'], remove_text=False, style='mpl20')
+@image_comparison(['plot_pint.png'], remove_text=False, style='mpl20',
+                  tol={'aarch64': 0.02}.get(platform.machine(), 0.0))
 def test_numpy_facade(quantity_converter):
+    # use former defaults to match existing baseline image
+    plt.rcParams['axes.formatter.limits'] = -7, 7
+
     # Register the class
     munits.registry[Quantity] = quantity_converter
 
@@ -97,9 +100,8 @@ def test_numpy_facade(quantity_converter):
 
 
 # Tests gh-8908
-@image_comparison(baseline_images=['plot_masked_units'],
-                  tol={'aarch64': 0.02}.get(platform.machine(), 0.0),
-                  extensions=['png'], remove_text=True, style='mpl20')
+@image_comparison(['plot_masked_units.png'], remove_text=True, style='mpl20',
+                  tol={'aarch64': 0.02}.get(platform.machine(), 0.0))
 def test_plot_masked_units():
     data = np.linspace(-5, 5)
     data_masked = np.ma.array(data, mask=(data > -2) & (data < 2))
@@ -118,10 +120,9 @@ def test_empty_set_limits_with_units(quantity_converter):
     ax.set_ylim(Quantity(-1, 'hours'), Quantity(16, 'hours'))
 
 
-@image_comparison(baseline_images=['jpl_bar_units'], extensions=['png'],
+@image_comparison(['jpl_bar_units.png'],
                   savefig_kwarg={'dpi': 120}, style='mpl20')
 def test_jpl_bar_units():
-    from datetime import datetime
     import matplotlib.testing.jpl_units as units
     units.register()
 
@@ -135,10 +136,9 @@ def test_jpl_bar_units():
     ax.set_ylim([b-1*day, b+w[-1]+1*day])
 
 
-@image_comparison(baseline_images=['jpl_barh_units'], extensions=['png'],
+@image_comparison(['jpl_barh_units.png'],
                   savefig_kwarg={'dpi': 120}, style='mpl20')
 def test_jpl_barh_units():
-    from datetime import datetime
     import matplotlib.testing.jpl_units as units
     units.register()
 
@@ -166,3 +166,12 @@ def test_scatter_element0_masked():
     fig, ax = plt.subplots()
     ax.scatter(times, y)
     fig.canvas.draw()
+
+
+@check_figures_equal(extensions=["png"])
+def test_subclass(fig_test, fig_ref):
+    class subdate(datetime):
+        pass
+
+    fig_test.subplots().plot(subdate(2000, 1, 1), 0, "o")
+    fig_ref.subplots().plot(datetime(2000, 1, 1), 0, "o")

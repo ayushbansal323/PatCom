@@ -39,10 +39,8 @@ def test_simple():
     pickle.dump(fig, BytesIO(), pickle.HIGHEST_PROTOCOL)
 
 
-@image_comparison(baseline_images=['multi_pickle'],
-                  extensions=['png'], remove_text=True,
-                  tol={'aarch64': 0.02}.get(platform.machine(), 0.0),
-                  style='mpl20')
+@image_comparison(['multi_pickle.png'], remove_text=True, style='mpl20',
+                  tol={'aarch64': 0.02}.get(platform.machine(), 0.0))
 def test_complete():
     fig = plt.figure('Figure with a label?', figsize=(10, 6))
 
@@ -139,14 +137,14 @@ def test_image():
 
 
 def test_polar():
-    ax = plt.subplot(111, polar=True)
+    plt.subplot(111, polar=True)
     fig = plt.gcf()
     pf = pickle.dumps(fig)
     pickle.loads(pf)
     plt.draw()
 
 
-class TransformBlob(object):
+class TransformBlob:
     def __init__(self):
         self.identity = mtransforms.IdentityTransform()
         self.identity2 = mtransforms.IdentityTransform()

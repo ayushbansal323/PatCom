@@ -1,4 +1,9 @@
-import warnings
+try:
+    from contextlib import nullcontext
+except ImportError:
+    from contextlib import ExitStack as nullcontext  # Py 3.6.
+import re
+import itertools
 
 import numpy as np
 from numpy.testing import assert_almost_equal, assert_array_equal
@@ -9,7 +14,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 
 
-class TestMaxNLocator(object):
+class TestMaxNLocator:
     basic_data = [
         (20, 100, np.array([20., 40., 60., 80., 100.])),
         (0.001, 0.0001, np.array([0., 0.0002, 0.0004, 0.0006, 0.0008, 0.001])),
@@ -35,7 +40,7 @@ class TestMaxNLocator(object):
         assert_almost_equal(loc.tick_values(vmin, vmax), expected)
 
 
-class TestLinearLocator(object):
+class TestLinearLocator:
     def test_basic(self):
         loc = mticker.LinearLocator(numticks=3)
         test_value = np.array([-0.8, -0.3, 0.2])
@@ -52,7 +57,7 @@ class TestLinearLocator(object):
         assert loc.presets == {(0, 1): []}
 
 
-class TestMultipleLocator(object):
+class TestMultipleLocator:
     def test_basic(self):
         loc = mticker.MultipleLocator(base=3.147)
         test_value = np.array([-9.441, -6.294, -3.147, 0., 3.147, 6.294,
@@ -86,7 +91,7 @@ class TestMultipleLocator(object):
         assert mult._edge.step == 1.7
 
 
-class TestAutoMinorLocator(object):
+class TestAutoMinorLocator:
     def test_basic(self):
         fig, ax = plt.subplots()
         ax.set_xlim(0, 1.39)
@@ -125,7 +130,8 @@ class TestAutoMinorLocator(object):
     def test_using_all_default_major_steps(self):
         with matplotlib.rc_context({'_internal.classic_mode': False}):
             majorsteps = [x[0] for x in self.majorstep_minordivisions]
-            assert np.allclose(majorsteps, mticker.AutoLocator()._steps)
+            np.testing.assert_allclose(majorsteps,
+                                       mticker.AutoLocator()._steps)
 
     @pytest.mark.parametrize('major_step, expected_nb_minordivisions',
                              majorstep_minordivisions)
@@ -188,7 +194,7 @@ class TestAutoMinorLocator(object):
         assert_almost_equal(ax.yaxis.get_ticklocs(minor=True), ref)
 
 
-class TestLogLocator(object):
+class TestLogLocator:
     def test_basic(self):
         loc = mticker.LogLocator(numticks=5)
         with pytest.raises(ValueError):
@@ -226,31 +232,183 @@ class TestLogLocator(object):
         assert list(loc._subs) == [2.0]
 
 
-class TestNullLocator(object):
+class TestNullLocator:
     def test_set_params(self):
         """
         Create null locator, and attempt to call set_params() on it.
         Should not exception, and should raise a warning.
         """
         loc = mticker.NullLocator()
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
+        with pytest.warns(UserWarning):
             loc.set_params()
-            assert len(w) == 1
 
 
-class TestLogitLocator(object):
-    def test_set_params(self):
+class _LogitHelper:
+    @staticmethod
+    def isclose(x, y):
+        return (np.isclose(-np.log(1/x-1), -np.log(1/y-1))
+                if 0 < x < 1 and 0 < y < 1 else False)
+
+    @staticmethod
+    def assert_almost_equal(x, y):
+        ax = np.array(x)
+        ay = np.array(y)
+        assert np.all(ax > 0) and np.all(ax < 1)
+        assert np.all(ay > 0) and np.all(ay < 1)
+        lx = -np.log(1/ax-1)
+        ly = -np.log(1/ay-1)
+        assert_almost_equal(lx, ly)
+
+
+class TestLogitLocator:
+    ref_basic_limits = [
+        (5e-2, 1 - 5e-2),
+        (5e-3, 1 - 5e-3),
+        (5e-4, 1 - 5e-4),
+        (5e-5, 1 - 5e-5),
+        (5e-6, 1 - 5e-6),
+        (5e-7, 1 - 5e-7),
+        (5e-8, 1 - 5e-8),
+        (5e-9, 1 - 5e-9),
+    ]
+
+    ref_basic_major_ticks = [
+        1 / (10 ** np.arange(1, 3)),
+        1 / (10 ** np.arange(1, 4)),
+        1 / (10 ** np.arange(1, 5)),
+        1 / (10 ** np.arange(1, 6)),
+        1 / (10 ** np.arange(1, 7)),
+        1 / (10 ** np.arange(1, 8)),
+        1 / (10 ** np.arange(1, 9)),
+        1 / (10 ** np.arange(1, 10)),
+    ]
+
+    ref_maxn_limits = [(0.4, 0.6), (5e-2, 2e-1), (1 - 2e-1, 1 - 5e-2)]
+
+    @pytest.mark.parametrize(
+        "lims, expected_low_ticks",
+        zip(ref_basic_limits, ref_basic_major_ticks),
+    )
+    def test_basic_major(self, lims, expected_low_ticks):
         """
-        Create logit locator with default minor=False, and change it to
-        something else. See if change was successful. Should not exception.
+        Create logit locator with huge number of major, and tests ticks.
         """
-        loc = mticker.LogitLocator()  # Defaults to false.
-        loc.set_params(minor=True)
+        expected_ticks = sorted(
+            [*expected_low_ticks, 0.5, *(1 - expected_low_ticks)]
+        )
+        loc = mticker.LogitLocator(nbins=100)
+        _LogitHelper.assert_almost_equal(
+            loc.tick_values(*lims),
+            expected_ticks
+        )
+
+    @pytest.mark.parametrize("lims", ref_maxn_limits)
+    def test_maxn_major(self, lims):
+        """
+        When the axis is zoomed, the locator must have the same behavior as
+        MaxNLocator.
+        """
+        loc = mticker.LogitLocator(nbins=100)
+        maxn_loc = mticker.MaxNLocator(nbins=100, steps=[1, 2, 5, 10])
+        for nbins in (4, 8, 16):
+            loc.set_params(nbins=nbins)
+            maxn_loc.set_params(nbins=nbins)
+            ticks = loc.tick_values(*lims)
+            maxn_ticks = maxn_loc.tick_values(*lims)
+            assert ticks.shape == maxn_ticks.shape
+            assert (ticks == maxn_ticks).all()
+
+    @pytest.mark.parametrize("lims", ref_basic_limits + ref_maxn_limits)
+    def test_nbins_major(self, lims):
+        """
+        Assert logit locator for respecting nbins param.
+        """
+
+        basic_needed = int(-np.floor(np.log10(lims[0]))) * 2 + 1
+        loc = mticker.LogitLocator(nbins=100)
+        for nbins in range(basic_needed, 2, -1):
+            loc.set_params(nbins=nbins)
+            assert len(loc.tick_values(*lims)) <= nbins + 2
+
+    @pytest.mark.parametrize(
+        "lims, expected_low_ticks",
+        zip(ref_basic_limits, ref_basic_major_ticks),
+    )
+    def test_minor(self, lims, expected_low_ticks):
+        """
+        In large scale, test the presence of minor,
+        and assert no minor when major are subsampled.
+        """
+
+        expected_ticks = sorted(
+            [*expected_low_ticks, 0.5, *(1 - expected_low_ticks)]
+        )
+        basic_needed = len(expected_ticks)
+        loc = mticker.LogitLocator(nbins=100)
+        minor_loc = mticker.LogitLocator(nbins=100, minor=True)
+        for nbins in range(basic_needed, 2, -1):
+            loc.set_params(nbins=nbins)
+            minor_loc.set_params(nbins=nbins)
+            major_ticks = loc.tick_values(*lims)
+            minor_ticks = minor_loc.tick_values(*lims)
+            if len(major_ticks) >= len(expected_ticks):
+                # no subsample, we must have a lot of minors ticks
+                assert (len(major_ticks) - 1) * 5 < len(minor_ticks)
+            else:
+                # subsample
+                _LogitHelper.assert_almost_equal(
+                    np.sort(np.concatenate((major_ticks, minor_ticks))),
+                    expected_ticks,
+                )
+
+    def test_minor_attr(self):
+        loc = mticker.LogitLocator(nbins=100)
+        assert not loc.minor
+        loc.minor = True
         assert loc.minor
+        loc.set_params(minor=False)
+        assert not loc.minor
+
+    acceptable_vmin_vmax = [
+        *(2.5 ** np.arange(-3, 0)),
+        *(1 - 2.5 ** np.arange(-3, 0)),
+    ]
+
+    @pytest.mark.parametrize(
+        "lims",
+        [
+            (a, b)
+            for (a, b) in itertools.product(acceptable_vmin_vmax, repeat=2)
+            if a != b
+        ],
+    )
+    def test_nonsingular_ok(self, lims):
+        """
+        Create logit locator, and test the nonsingular method for acceptable
+        value
+        """
+        loc = mticker.LogitLocator()
+        lims2 = loc.nonsingular(*lims)
+        assert sorted(lims) == sorted(lims2)
+
+    @pytest.mark.parametrize("okval", acceptable_vmin_vmax)
+    def test_nonsingular_nok(self, okval):
+        """
+        Create logit locator, and test the nonsingular method for non
+        acceptable value
+        """
+        loc = mticker.LogitLocator()
+        vmin, vmax = (-1, okval)
+        vmin2, vmax2 = loc.nonsingular(vmin, vmax)
+        assert vmax2 == vmax
+        assert 0 < vmin2 < vmax2
+        vmin, vmax = (okval, 2)
+        vmin2, vmax2 = loc.nonsingular(vmin, vmax)
+        assert vmin2 == vmin
+        assert vmin2 < vmax2 < 1
 
 
-class TestFixedLocator(object):
+class TestFixedLocator:
     def test_set_params(self):
         """
         Create fixed locator with 5 nbins, and change it to something else.
@@ -262,7 +420,7 @@ class TestFixedLocator(object):
         assert fixed.nbins == 7
 
 
-class TestIndexLocator(object):
+class TestIndexLocator:
     def test_set_params(self):
         """
         Create index locator with 3 base, 4 offset. and change it to something
@@ -275,7 +433,7 @@ class TestIndexLocator(object):
         assert index.offset == 7
 
 
-class TestSymmetricalLogLocator(object):
+class TestSymmetricalLogLocator:
     def test_set_params(self):
         """
         Create symmetrical log locator with default subs =[1.0] numticks = 15,
@@ -289,7 +447,7 @@ class TestSymmetricalLogLocator(object):
         assert sym.numticks == 8
 
 
-class TestScalarFormatter(object):
+class TestScalarFormatter:
     offset_data = [
         (123, 189, 0),
         (-189, -123, 0),
@@ -343,19 +501,15 @@ class TestScalarFormatter(object):
         fig, ax = plt.subplots()
         formatter = ax.get_xaxis().get_major_formatter()
 
-        with warnings.catch_warnings(record=True) as w:
-            warnings.filterwarnings('always', 'Attempting to set identical',
-                                    UserWarning)
+        with (pytest.warns(UserWarning, match='Attempting to set identical')
+              if left == right else nullcontext()):
             ax.set_xlim(left, right)
-        assert len(w) == (1 if left == right else 0)
         ax.get_xaxis()._update_ticks()
         assert formatter.offset == offset
 
-        with warnings.catch_warnings(record=True) as w:
-            warnings.filterwarnings('always', 'Attempting to set identical',
-                                    UserWarning)
+        with (pytest.warns(UserWarning, match='Attempting to set identical')
+              if left == right else nullcontext()):
             ax.set_xlim(right, left)
-        assert len(w) == (1 if left == right else 0)
         ax.get_xaxis()._update_ticks()
         assert formatter.offset == offset
 
@@ -367,8 +521,7 @@ class TestScalarFormatter(object):
 
     @pytest.mark.parametrize(
         'sci_type, scilimits, lim, orderOfMag, fewticks', scilimits_data)
-    def test_scilimits(self, sci_type, scilimits, lim, orderOfMag,
-                       fewticks):
+    def test_scilimits(self, sci_type, scilimits, lim, orderOfMag, fewticks):
         tmp_form = mticker.ScalarFormatter()
         tmp_form.set_scientific(sci_type)
         tmp_form.set_powerlimits(scilimits)
@@ -382,7 +535,7 @@ class TestScalarFormatter(object):
         assert orderOfMag == tmp_form.orderOfMagnitude
 
 
-class FakeAxis(object):
+class FakeAxis:
     """Allow Formatter to be called without having a "full" plot set up."""
     def __init__(self, vmin=1, vmax=10):
         self.vmin = vmin
@@ -392,7 +545,7 @@ class FakeAxis(object):
         return self.vmin, self.vmax
 
 
-class TestLogFormatterExponent(object):
+class TestLogFormatterExponent:
     param_data = [
         (True, 4, np.arange(-3, 4.0), np.arange(-3, 4.0),
          ['-3', '-2', '-1', '0', '1', '2', '3']),
@@ -425,7 +578,7 @@ class TestLogFormatterExponent(object):
         assert formatter(10**0.1) == ''
 
 
-class TestLogFormatterMathtext():
+class TestLogFormatterMathtext:
     fmt = mticker.LogFormatterMathtext()
     test_data = [
         (0, 1, '$\\mathdefault{10^{0}}$'),
@@ -445,7 +598,7 @@ class TestLogFormatterMathtext():
             assert self.fmt(value) == expected
 
 
-class TestLogFormatterSciNotation(object):
+class TestLogFormatterSciNotation:
     test_data = [
         (2, 0.03125, '$\\mathdefault{2^{-5}}$'),
         (2, 1, '$\\mathdefault{2^{0}}$'),
@@ -474,7 +627,7 @@ class TestLogFormatterSciNotation(object):
             assert formatter(value) == expected
 
 
-class TestLogFormatter(object):
+class TestLogFormatter:
     pprint_data = [
         (3.141592654e-05, 0.001, '3.142e-5'),
         (0.0003141592654, 0.001, '3.142e-4'),
@@ -622,7 +775,7 @@ class TestLogFormatter(object):
         minor_tlocs = axis.get_minorticklocs()
         fmt.set_locs(minor_tlocs)
         coefs = minor_tlocs / 10**(np.floor(np.log10(minor_tlocs)))
-        label_expected = [np.round(c) in subs for c in coefs]
+        label_expected = [round(c) in subs for c in coefs]
         label_test = [fmt(x) != '' for x in minor_tlocs]
         assert label_test == label_expected
 
@@ -646,7 +799,7 @@ class TestLogFormatter(object):
         self._sub_labels(ax.xaxis, subs=[])
 
         # For the next two, if the numdec threshold in LogFormatter.set_locs
-        # were 3, then the label sub would be 3 for 2-3 decades and (2,5)
+        # were 3, then the label sub would be 3 for 2-3 decades and (2, 5)
         # for 1-2 decades.  With a threshold of 1, subs are not labeled.
         # axis range at 2 to 3 decades
         ax.set_xlim(1, 800)
@@ -672,14 +825,192 @@ class TestLogFormatter(object):
         assert temp_lf(val) == str(val)
 
 
-class TestFormatStrFormatter(object):
+class TestLogitFormatter:
+    @staticmethod
+    def logit_deformatter(string):
+        r"""
+        Parser to convert string as r'$\mathdefault{1.41\cdot10^{-4}}$' in
+        float 1.41e-4, as '0.5' or as r'$\mathdefault{\frac{1}{2}}$' in float
+        0.5,
+        """
+        match = re.match(
+            r"[^\d]*"
+            r"(?P<comp>1-)?"
+            r"(?P<mant>\d*\.?\d*)?"
+            r"(?:\\cdot)?"
+            r"(?:10\^\{(?P<expo>-?\d*)})?"
+            r"[^\d]*$",
+            string,
+        )
+        if match:
+            comp = match["comp"] is not None
+            mantissa = float(match["mant"]) if match["mant"] else 1
+            expo = int(match["expo"]) if match["expo"] is not None else 0
+            value = mantissa * 10 ** expo
+            if match["mant"] or match["expo"] is not None:
+                if comp:
+                    return 1 - value
+                return value
+        match = re.match(
+            r"[^\d]*\\frac\{(?P<num>\d+)\}\{(?P<deno>\d+)\}[^\d]*$", string
+        )
+        if match:
+            num, deno = float(match["num"]), float(match["deno"])
+            return num / deno
+        raise ValueError("not formatted by LogitFormatter")
+
+    @pytest.mark.parametrize(
+        "fx, x",
+        [
+            (r"STUFF0.41OTHERSTUFF", 0.41),
+            (r"STUFF1.41\cdot10^{-2}OTHERSTUFF", 1.41e-2),
+            (r"STUFF1-0.41OTHERSTUFF", 1 - 0.41),
+            (r"STUFF1-1.41\cdot10^{-2}OTHERSTUFF", 1 - 1.41e-2),
+            (r"STUFF", None),
+            (r"STUFF12.4e-3OTHERSTUFF", None),
+        ],
+    )
+    def test_logit_deformater(self, fx, x):
+        if x is None:
+            with pytest.raises(ValueError):
+                TestLogitFormatter.logit_deformatter(fx)
+        else:
+            y = TestLogitFormatter.logit_deformatter(fx)
+            assert _LogitHelper.isclose(x, y)
+
+    decade_test = sorted(
+        [10 ** (-i) for i in range(1, 10)]
+        + [1 - 10 ** (-i) for i in range(1, 10)]
+        + [1 / 2]
+    )
+
+    @pytest.mark.parametrize("x", decade_test)
+    def test_basic(self, x):
+        """
+        Test the formatted value correspond to the value for ideal ticks in
+        logit space.
+        """
+        formatter = mticker.LogitFormatter(use_overline=False)
+        formatter.set_locs(self.decade_test)
+        s = formatter(x)
+        x2 = TestLogitFormatter.logit_deformatter(s)
+        assert _LogitHelper.isclose(x, x2)
+
+    @pytest.mark.parametrize("x", (-1, -0.5, -0.1, 1.1, 1.5, 2))
+    def test_invalid(self, x):
+        """
+        Test that invalid value are formatted with empty string without
+        raising exception.
+        """
+        formatter = mticker.LogitFormatter(use_overline=False)
+        formatter.set_locs(self.decade_test)
+        s = formatter(x)
+        assert s == ""
+
+    @pytest.mark.parametrize("x", 1 / (1 + np.exp(-np.linspace(-7, 7, 10))))
+    def test_variablelength(self, x):
+        """
+        The format length should change depending on the neighbor labels.
+        """
+        formatter = mticker.LogitFormatter(use_overline=False)
+        for N in (10, 20, 50, 100, 200, 1000, 2000, 5000, 10000):
+            if x + 1 / N < 1:
+                formatter.set_locs([x - 1 / N, x, x + 1 / N])
+                sx = formatter(x)
+                sx1 = formatter(x + 1 / N)
+                d = (
+                    TestLogitFormatter.logit_deformatter(sx1)
+                    - TestLogitFormatter.logit_deformatter(sx)
+                )
+                assert 0 < d < 2 / N
+
+    lims_minor_major = [
+        (True, (5e-8, 1 - 5e-8), ((25, False), (75, False))),
+        (True, (5e-5, 1 - 5e-5), ((25, False), (75, True))),
+        (True, (5e-2, 1 - 5e-2), ((25, True), (75, True))),
+        (False, (0.75, 0.76, 0.77), ((7, True), (25, True), (75, True))),
+    ]
+
+    @pytest.mark.parametrize("method, lims, cases", lims_minor_major)
+    def test_minor_vs_major(self, method, lims, cases):
+        """
+        Test minor/major displays.
+        """
+
+        if method:
+            min_loc = mticker.LogitLocator(minor=True)
+            ticks = min_loc.tick_values(*lims)
+        else:
+            ticks = np.array(lims)
+        min_form = mticker.LogitFormatter(minor=True)
+        for threshold, has_minor in cases:
+            min_form.set_minor_threshold(threshold)
+            formatted = min_form.format_ticks(ticks)
+            labelled = [f for f in formatted if len(f) > 0]
+            if has_minor:
+                assert len(labelled) > 0, (threshold, has_minor)
+            else:
+                assert len(labelled) == 0, (threshold, has_minor)
+
+    def test_minor_number(self):
+        """
+        Test the parameter minor_number
+        """
+        min_loc = mticker.LogitLocator(minor=True)
+        min_form = mticker.LogitFormatter(minor=True)
+        ticks = min_loc.tick_values(5e-2, 1 - 5e-2)
+        for minor_number in (2, 4, 8, 16):
+            min_form.set_minor_number(minor_number)
+            formatted = min_form.format_ticks(ticks)
+            labelled = [f for f in formatted if len(f) > 0]
+            assert len(labelled) == minor_number
+
+    def test_use_overline(self):
+        """
+        Test the parameter use_overline
+        """
+        x = 1 - 1e-2
+        fx1 = r"$\mathdefault{1-10^{-2}}$"
+        fx2 = r"$\mathdefault{\overline{10^{-2}}}$"
+        form = mticker.LogitFormatter(use_overline=False)
+        assert form(x) == fx1
+        form.use_overline(True)
+        assert form(x) == fx2
+        form.use_overline(False)
+        assert form(x) == fx1
+
+    def test_one_half(self):
+        """
+        Test the parameter one_half
+        """
+        form = mticker.LogitFormatter()
+        assert r"\frac{1}{2}" in form(1/2)
+        form.set_one_half("1/2")
+        assert "1/2" in form(1/2)
+        form.set_one_half("one half")
+        assert "one half" in form(1/2)
+
+    @pytest.mark.parametrize("N", (100, 253, 754))
+    def test_format_data_short(self, N):
+        locs = np.linspace(0, 1, N)[1:-1]
+        form = mticker.LogitFormatter()
+        for x in locs:
+            fx = form.format_data_short(x)
+            if fx.startswith("1-"):
+                x2 = 1 - float(fx[2:])
+            else:
+                x2 = float(fx)
+            assert np.abs(x - x2) < 1 / N
+
+
+class TestFormatStrFormatter:
     def test_basic(self):
         # test % style formatter
         tmp_form = mticker.FormatStrFormatter('%05d')
         assert '00002' == tmp_form(2)
 
 
-class TestStrMethodFormatter(object):
+class TestStrMethodFormatter:
     test_data = [
         ('{x:05d}', (2,), '00002'),
         ('{x:03d}-{pos:02d}', (2, 1), '002-01'),
@@ -691,7 +1022,7 @@ class TestStrMethodFormatter(object):
         assert fmt(*input) == expected
 
 
-class TestEngFormatter(object):
+class TestEngFormatter:
     # (unicode_minus, input, expected) where ''expected'' corresponds to the
     # outputs respectively returned when (places=None, places=0, places=2)
     # unicode_minus is a boolean value for the rcParam['axes.unicode_minus']
@@ -816,7 +1147,7 @@ def test_engformatter_usetex_useMathText():
         assert x_tick_label_text == ['$0$', '$500$', '$1$ k']
 
 
-class TestPercentFormatter(object):
+class TestPercentFormatter:
     percent_data = [
         # Check explicitly set decimals over different intervals and values
         (100, 0, '%', 120, 100, '120%'),
@@ -965,3 +1296,12 @@ def test_remove_overlap(remove_overlapping_locs, expected_num):
     assert len(ax.xaxis.get_minor_ticks()) == expected_num
     assert len(ax.xaxis.get_minorticklabels()) == expected_num
     assert len(ax.xaxis.get_minorticklines()) == expected_num*2
+
+
+@pytest.mark.parametrize('sub', [
+    ['hi', 'aardvark'],
+    np.zeros((2, 2))])
+def test_bad_locator_subs(sub):
+    ll = mticker.LogLocator()
+    with pytest.raises(ValueError):
+        ll.subs(sub)

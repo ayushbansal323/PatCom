@@ -22,9 +22,10 @@ def wordSimilarity(word, wordList):
                 temp = 0
                 for jwordsyn in wn.synsets(jword, 'n'):
                     temp += wordsyn[i].wup_similarity(jwordsyn)
+
                 temp = temp / (len(wn.synsets(jword, 'n')))  # average similarity with all synsets of jword
                 if temp >= threshold:
-                    similarity[i] += 1
+                     similarity[i] += 1
 
     i = similarity.index(max(similarity))  # identify which synset has max similarity
     return [word, wordsyn[i], similarity[i]]

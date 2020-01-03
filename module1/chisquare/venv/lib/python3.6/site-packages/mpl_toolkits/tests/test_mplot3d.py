@@ -1,8 +1,10 @@
 import pytest
 
 from mpl_toolkits.mplot3d import Axes3D, axes3d, proj3d, art3d
+import matplotlib as mpl
 from matplotlib import cm
 from matplotlib import path as mpath
+from matplotlib import colors as mcolors
 from matplotlib.testing.decorators import image_comparison, check_figures_equal
 from matplotlib.cbook.deprecation import MatplotlibDeprecationWarning
 from matplotlib.collections import LineCollection, PolyCollection
@@ -18,7 +20,7 @@ def test_aspect_equal_error():
         ax.set_aspect('equal')
 
 
-@image_comparison(baseline_images=['bar3d'], remove_text=True)
+@image_comparison(['bar3d.png'], remove_text=True)
 def test_bar3d():
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
@@ -30,11 +32,7 @@ def test_bar3d():
         ax.bar(xs, ys, zs=z, zdir='y', align='edge', color=cs, alpha=0.8)
 
 
-@image_comparison(
-    baseline_images=['bar3d_shaded'],
-    remove_text=True,
-    extensions=['png']
-)
+@image_comparison(['bar3d_shaded.png'], remove_text=True)
 def test_bar3d_shaded():
     x = np.arange(4)
     y = np.arange(5)
@@ -54,11 +52,7 @@ def test_bar3d_shaded():
     fig.canvas.draw()
 
 
-@image_comparison(
-    baseline_images=['bar3d_notshaded'],
-    remove_text=True,
-    extensions=['png']
-)
+@image_comparison(['bar3d_notshaded.png'], remove_text=True)
 def test_bar3d_notshaded():
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
@@ -71,34 +65,60 @@ def test_bar3d_notshaded():
     fig.canvas.draw()
 
 
-@image_comparison(baseline_images=['contour3d'],
-                  remove_text=True, style='mpl20')
+def test_bar3d_lightsource():
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1, projection="3d")
+
+    ls = mcolors.LightSource(azdeg=0, altdeg=90)
+
+    length, width = 3, 4
+    area = length * width
+
+    x, y = np.meshgrid(np.arange(length), np.arange(width))
+    x = x.ravel()
+    y = y.ravel()
+    dz = x + y
+
+    color = [cm.coolwarm(i/area) for i in range(area)]
+
+    collection = ax.bar3d(x=x, y=y, z=0,
+                          dx=1, dy=1, dz=dz,
+                          color=color, shade=True, lightsource=ls)
+
+    # Testing that the custom 90° lightsource produces different shading on
+    # the top facecolors compared to the default, and that those colors are
+    # precisely the colors from the colormap, due to the illumination parallel
+    # to the z-axis.
+    np.testing.assert_array_equal(color, collection._facecolors3d[1::6])
+
+
+@image_comparison(['contour3d.png'], remove_text=True, style='mpl20')
 def test_contour3d():
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     X, Y, Z = axes3d.get_test_data(0.05)
-    cset = ax.contour(X, Y, Z, zdir='z', offset=-100, cmap=cm.coolwarm)
-    cset = ax.contour(X, Y, Z, zdir='x', offset=-40, cmap=cm.coolwarm)
-    cset = ax.contour(X, Y, Z, zdir='y', offset=40, cmap=cm.coolwarm)
+    ax.contour(X, Y, Z, zdir='z', offset=-100, cmap=cm.coolwarm)
+    ax.contour(X, Y, Z, zdir='x', offset=-40, cmap=cm.coolwarm)
+    ax.contour(X, Y, Z, zdir='y', offset=40, cmap=cm.coolwarm)
     ax.set_xlim(-40, 40)
     ax.set_ylim(-40, 40)
     ax.set_zlim(-100, 100)
 
 
-@image_comparison(baseline_images=['contourf3d'], remove_text=True)
+@image_comparison(['contourf3d.png'], remove_text=True)
 def test_contourf3d():
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     X, Y, Z = axes3d.get_test_data(0.05)
-    cset = ax.contourf(X, Y, Z, zdir='z', offset=-100, cmap=cm.coolwarm)
-    cset = ax.contourf(X, Y, Z, zdir='x', offset=-40, cmap=cm.coolwarm)
-    cset = ax.contourf(X, Y, Z, zdir='y', offset=40, cmap=cm.coolwarm)
+    ax.contourf(X, Y, Z, zdir='z', offset=-100, cmap=cm.coolwarm)
+    ax.contourf(X, Y, Z, zdir='x', offset=-40, cmap=cm.coolwarm)
+    ax.contourf(X, Y, Z, zdir='y', offset=40, cmap=cm.coolwarm)
     ax.set_xlim(-40, 40)
     ax.set_ylim(-40, 40)
     ax.set_zlim(-100, 100)
 
 
-@image_comparison(baseline_images=['contourf3d_fill'], remove_text=True)
+@image_comparison(['contourf3d_fill.png'], remove_text=True)
 def test_contourf3d_fill():
     fig = plt.figure()
     ax = fig.gca(projection='3d')
@@ -107,14 +127,13 @@ def test_contourf3d_fill():
     # This produces holes in the z=0 surface that causes rendering errors if
     # the Poly3DCollection is not aware of path code information (issue #4784)
     Z[::5, ::5] = 0.1
-    cset = ax.contourf(X, Y, Z, offset=0, levels=[-0.1, 0], cmap=cm.coolwarm)
+    ax.contourf(X, Y, Z, offset=0, levels=[-0.1, 0], cmap=cm.coolwarm)
     ax.set_xlim(-2, 2)
     ax.set_ylim(-2, 2)
     ax.set_zlim(-1, 1)
 
 
-@image_comparison(baseline_images=['tricontour'], remove_text=True,
-                  style='mpl20', extensions=['png'])
+@image_comparison(['tricontour.png'], remove_text=True, style='mpl20')
 def test_tricontour():
     fig = plt.figure()
 
@@ -129,7 +148,7 @@ def test_tricontour():
     ax.tricontourf(x, y, z)
 
 
-@image_comparison(baseline_images=['lines3d'], remove_text=True)
+@image_comparison(['lines3d.png'], remove_text=True)
 def test_lines3d():
     fig = plt.figure()
     ax = fig.gca(projection='3d')
@@ -141,11 +160,7 @@ def test_lines3d():
     ax.plot(x, y, z)
 
 
-# Reason for flakiness of SVG test is still unknown.
-@image_comparison(
-    baseline_images=['mixedsubplot'], remove_text=True,
-    extensions=['png', 'pdf',
-                pytest.param('svg', marks=pytest.mark.xfail(strict=False))])
+@image_comparison(['mixedsubplot.png'], remove_text=True)
 def test_mixedsubplots():
     def f(t):
         return np.cos(2*np.pi*t) * np.exp(-t)
@@ -155,8 +170,7 @@ def test_mixedsubplots():
 
     fig = plt.figure(figsize=plt.figaspect(2.))
     ax = fig.add_subplot(2, 1, 1)
-    l = ax.plot(t1, f(t1), 'bo',
-                t2, f(t2), 'k--', markerfacecolor='green')
+    ax.plot(t1, f(t1), 'bo', t2, f(t2), 'k--', markerfacecolor='green')
     ax.grid(True)
 
     ax = fig.add_subplot(2, 1, 2, projection='3d')
@@ -164,8 +178,8 @@ def test_mixedsubplots():
     R = np.hypot(X, Y)
     Z = np.sin(R)
 
-    surf = ax.plot_surface(X, Y, Z, rcount=40, ccount=40,
-                           linewidth=0, antialiased=False)
+    ax.plot_surface(X, Y, Z, rcount=40, ccount=40,
+                    linewidth=0, antialiased=False)
 
     ax.set_zlim3d(-1, 1)
 
@@ -183,7 +197,7 @@ def test_tight_layout_text(fig_test, fig_ref):
     ax2.text(.5, .5, .5, s='some string')
 
 
-@image_comparison(baseline_images=['scatter3d'], remove_text=True)
+@image_comparison(['scatter3d.png'], remove_text=True)
 def test_scatter3d():
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
@@ -193,8 +207,7 @@ def test_scatter3d():
                c='b', marker='^')
 
 
-@image_comparison(baseline_images=['scatter3d_color'], remove_text=True,
-                  extensions=['png'])
+@image_comparison(['scatter3d_color.png'], remove_text=True)
 def test_scatter3d_color():
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
@@ -204,8 +217,7 @@ def test_scatter3d_color():
                color='b', marker='s')
 
 
-@image_comparison(baseline_images=['plot_3d_from_2d'], remove_text=True,
-                  extensions=['png'])
+@image_comparison(['plot_3d_from_2d.png'], remove_text=True)
 def test_plot_3d_from_2d():
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
@@ -215,7 +227,7 @@ def test_plot_3d_from_2d():
     ax.plot(xs, ys, zs=0, zdir='y')
 
 
-@image_comparison(baseline_images=['surface3d'], remove_text=True)
+@image_comparison(['surface3d.png'], remove_text=True)
 def test_surface3d():
     fig = plt.figure()
     ax = fig.gca(projection='3d')
@@ -230,8 +242,7 @@ def test_surface3d():
     fig.colorbar(surf, shrink=0.5, aspect=5)
 
 
-@image_comparison(baseline_images=['surface3d_shaded'], remove_text=True,
-                  extensions=['png'])
+@image_comparison(['surface3d_shaded.png'], remove_text=True)
 def test_surface3d_shaded():
     fig = plt.figure()
     ax = fig.gca(projection='3d')
@@ -240,12 +251,12 @@ def test_surface3d_shaded():
     X, Y = np.meshgrid(X, Y)
     R = np.sqrt(X ** 2 + Y ** 2)
     Z = np.sin(R)
-    surf = ax.plot_surface(X, Y, Z, rstride=5, cstride=5,
-                           color=[0.25, 1, 0.25], lw=1, antialiased=False)
+    ax.plot_surface(X, Y, Z, rstride=5, cstride=5,
+                    color=[0.25, 1, 0.25], lw=1, antialiased=False)
     ax.set_zlim(-1.01, 1.01)
 
 
-@image_comparison(baseline_images=['text3d'])
+@image_comparison(['text3d.png'])
 def test_text3d():
     fig = plt.figure()
     ax = fig.gca(projection='3d')
@@ -269,7 +280,7 @@ def test_text3d():
     ax.set_zlabel('Z axis')
 
 
-@image_comparison(baseline_images=['trisurf3d'], remove_text=True, tol=0.03)
+@image_comparison(['trisurf3d.png'], remove_text=True, tol=0.03)
 def test_trisurf3d():
     n_angles = 36
     n_radii = 8
@@ -287,8 +298,7 @@ def test_trisurf3d():
     ax.plot_trisurf(x, y, z, cmap=cm.jet, linewidth=0.2)
 
 
-@image_comparison(baseline_images=['trisurf3d_shaded'], remove_text=True,
-                  tol=0.03, extensions=['png'])
+@image_comparison(['trisurf3d_shaded.png'], remove_text=True, tol=0.03)
 def test_trisurf3d_shaded():
     n_angles = 36
     n_radii = 8
@@ -306,7 +316,7 @@ def test_trisurf3d_shaded():
     ax.plot_trisurf(x, y, z, color=[1, 0.5, 0], linewidth=0.2)
 
 
-@image_comparison(baseline_images=['wireframe3d'], remove_text=True)
+@image_comparison(['wireframe3d.png'], remove_text=True)
 def test_wireframe3d():
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
@@ -314,8 +324,7 @@ def test_wireframe3d():
     ax.plot_wireframe(X, Y, Z, rcount=13, ccount=13)
 
 
-@image_comparison(baseline_images=['wireframe3dzerocstride'], remove_text=True,
-                  extensions=['png'])
+@image_comparison(['wireframe3dzerocstride.png'], remove_text=True)
 def test_wireframe3dzerocstride():
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
@@ -323,8 +332,7 @@ def test_wireframe3dzerocstride():
     ax.plot_wireframe(X, Y, Z, rcount=13, ccount=0)
 
 
-@image_comparison(baseline_images=['wireframe3dzerorstride'], remove_text=True,
-                  extensions=['png'])
+@image_comparison(['wireframe3dzerorstride.png'], remove_text=True)
 def test_wireframe3dzerorstride():
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
@@ -350,7 +358,7 @@ def test_mixedsamplesraises():
         ax.plot_surface(X, Y, Z, cstride=50, rcount=10)
 
 
-@image_comparison(baseline_images=['quiver3d'], remove_text=True)
+@image_comparison(['quiver3d.png'], remove_text=True)
 def test_quiver3d():
     fig = plt.figure()
     ax = fig.gca(projection='3d')
@@ -365,7 +373,7 @@ def test_quiver3d():
     ax.quiver(x, y, z, u, v, w, length=0.1, pivot='tip', normalize=True)
 
 
-@image_comparison(baseline_images=['quiver3d_empty'], remove_text=True)
+@image_comparison(['quiver3d_empty.png'], remove_text=True)
 def test_quiver3d_empty():
     fig = plt.figure()
     ax = fig.gca(projection='3d')
@@ -380,7 +388,7 @@ def test_quiver3d_empty():
     ax.quiver(x, y, z, u, v, w, length=0.1, pivot='tip', normalize=True)
 
 
-@image_comparison(baseline_images=['quiver3d_masked'], remove_text=True)
+@image_comparison(['quiver3d_masked.png'], remove_text=True)
 def test_quiver3d_masked():
     fig = plt.figure()
     ax = fig.gca(projection='3d')
@@ -399,8 +407,7 @@ def test_quiver3d_masked():
     ax.quiver(x, y, z, u, v, w, length=0.1, pivot='tip', normalize=True)
 
 
-@image_comparison(baseline_images=['quiver3d_pivot_middle'], remove_text=True,
-                  extensions=['png'])
+@image_comparison(['quiver3d_pivot_middle.png'], remove_text=True)
 def test_quiver3d_pivot_middle():
     fig = plt.figure()
     ax = fig.gca(projection='3d')
@@ -415,8 +422,7 @@ def test_quiver3d_pivot_middle():
     ax.quiver(x, y, z, u, v, w, length=0.1, pivot='middle', normalize=True)
 
 
-@image_comparison(baseline_images=['quiver3d_pivot_tail'], remove_text=True,
-                  extensions=['png'])
+@image_comparison(['quiver3d_pivot_tail.png'], remove_text=True)
 def test_quiver3d_pivot_tail():
     fig = plt.figure()
     ax = fig.gca(projection='3d')
@@ -431,8 +437,7 @@ def test_quiver3d_pivot_tail():
     ax.quiver(x, y, z, u, v, w, length=0.1, pivot='tail', normalize=True)
 
 
-@image_comparison(baseline_images=['poly3dcollection_closed'],
-                  remove_text=True)
+@image_comparison(['poly3dcollection_closed.png'], remove_text=True)
 def test_poly3dcollection_closed():
     fig = plt.figure()
     ax = fig.gca(projection='3d')
@@ -454,8 +459,7 @@ def test_poly_collection_2d_to_3d_empty():
     assert poly.get_paths() == []
 
 
-@image_comparison(baseline_images=['poly3dcollection_alpha'],
-                  remove_text=True, extensions=['png'])
+@image_comparison(['poly3dcollection_alpha.png'], remove_text=True)
 def test_poly3dcollection_alpha():
     fig = plt.figure()
     ax = fig.gca(projection='3d')
@@ -472,14 +476,12 @@ def test_poly3dcollection_alpha():
     ax.add_collection3d(c2)
 
 
-@image_comparison(baseline_images=['axes3d_labelpad'], extensions=['png'])
+@image_comparison(['axes3d_labelpad.png'])
 def test_axes3d_labelpad():
-    from matplotlib import rcParams
-
     fig = plt.figure()
     ax = Axes3D(fig)
     # labelpad respects rcParams
-    assert ax.xaxis.labelpad == rcParams['axes.labelpad']
+    assert ax.xaxis.labelpad == mpl.rcParams['axes.labelpad']
     # labelpad can be set in set_label
     ax.set_xlabel('X LABEL', labelpad=10)
     assert ax.xaxis.labelpad == 10
@@ -494,7 +496,7 @@ def test_axes3d_labelpad():
         tick.set_pad(tick.get_pad() - i * 5)
 
 
-@image_comparison(baseline_images=['axes3d_cla'], extensions=['png'])
+@image_comparison(['axes3d_cla.png'])
 def test_axes3d_cla():
     # fixed in pull request 4553
     fig = plt.figure()
@@ -558,8 +560,7 @@ def _test_proj_draw_axes(M, s=1, *args, **kwargs):
     return fig, ax
 
 
-@image_comparison(baseline_images=['proj3d_axes_cube'], extensions=['png'],
-                  remove_text=True, style='default')
+@image_comparison(['proj3d_axes_cube.png'], remove_text=True, style='default')
 def test_proj_axes_cube():
     M = _test_proj_make_M()
 
@@ -581,8 +582,8 @@ def test_proj_axes_cube():
     ax.set_ylim(-0.2, 0.2)
 
 
-@image_comparison(baseline_images=['proj3d_axes_cube_ortho'],
-                  extensions=['png'], remove_text=True, style='default')
+@image_comparison(['proj3d_axes_cube_ortho.png'],
+                  remove_text=True, style='default')
 def test_proj_axes_cube_ortho():
     E = np.array([200, 100, 100])
     R = np.array([0, 0, 0])
@@ -631,7 +632,7 @@ def test_world():
                                 [0, 0, 0, 1]])
 
 
-@image_comparison(baseline_images=['proj3d_lines_dists'], extensions=['png'],
+@image_comparison(['proj3d_lines_dists.png'],
                   remove_text=True, style='default')
 def test_lines_dists():
     fig, ax = plt.subplots(figsize=(4, 6), subplot_kw=dict(aspect='equal'))
@@ -666,7 +667,7 @@ def test_autoscale():
     assert ax.get_w_lims() == (0, 1, -.1, 1.1, -.4, 2.4)
 
 
-@image_comparison(baseline_images=['axes3d_ortho'], style='default')
+@image_comparison(['axes3d_ortho.png'], style='default')
 def test_axes3d_ortho():
     fig = plt.figure()
     ax = fig.gca(projection='3d')
@@ -690,12 +691,8 @@ def test_invalid_axes_limits(setter, side, value):
         getattr(obj, setter)(**limit)
 
 
-class TestVoxels(object):
-    @image_comparison(
-        baseline_images=['voxels-simple'],
-        extensions=['png'],
-        remove_text=True
-    )
+class TestVoxels:
+    @image_comparison(['voxels-simple.png'], remove_text=True)
     def test_simple(self):
         fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 
@@ -703,12 +700,8 @@ class TestVoxels(object):
         voxels = (x == y) | (y == z)
         ax.voxels(voxels)
 
-    @image_comparison(
-        baseline_images=['voxels-edge-style'],
-        extensions=['png'],
-        remove_text=True,
-        style='default'
-    )
+    @image_comparison(['voxels-edge-style.png'],
+                      remove_text=True, style='default')
     def test_edge_style(self):
         fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 
@@ -719,11 +712,7 @@ class TestVoxels(object):
         # change the edge color of one voxel
         v[max(v.keys())].set_edgecolor('C2')
 
-    @image_comparison(
-        baseline_images=['voxels-named-colors'],
-        extensions=['png'],
-        remove_text=True
-    )
+    @image_comparison(['voxels-named-colors.png'], remove_text=True)
     def test_named_colors(self):
         """Test with colors set to a 3d object array of strings."""
         fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
@@ -736,11 +725,7 @@ class TestVoxels(object):
         colors[(x + z) < 10] = 'cyan'
         ax.voxels(voxels, facecolors=colors)
 
-    @image_comparison(
-        baseline_images=['voxels-rgb-data'],
-        extensions=['png'],
-        remove_text=True
-    )
+    @image_comparison(['voxels-rgb-data.png'], remove_text=True)
     def test_rgb_data(self):
         """Test with colors set to a 4d float array of rgb data."""
         fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
@@ -753,11 +738,7 @@ class TestVoxels(object):
         colors[..., 2] = z / 9
         ax.voxels(voxels, facecolors=colors)
 
-    @image_comparison(
-        baseline_images=['voxels-alpha'],
-        extensions=['png'],
-        remove_text=True
-    )
+    @image_comparison(['voxels-alpha.png'], remove_text=True)
     def test_alpha(self):
         fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 
@@ -775,11 +756,7 @@ class TestVoxels(object):
             assert voxels[coord], "faces returned for absent voxel"
             assert isinstance(poly, art3d.Poly3DCollection)
 
-    @image_comparison(
-        baseline_images=['voxels-xyz'],
-        extensions=['png'],
-        tol=0.01
-    )
+    @image_comparison(['voxels-xyz.png'], tol=0.01)
     def test_xyz(self):
         fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 
@@ -864,7 +841,7 @@ def test_inverted(fig_test, fig_ref):
 
 
 def test_inverted_cla():
-    # Github PR #5450. Setting autoscale should reset
+    # GitHub PR #5450. Setting autoscale should reset
     # axes to be non-inverted.
     fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
     # 1. test that a new axis is not inverted per default
@@ -936,3 +913,76 @@ def test_proj3d_deprecated():
 
     with pytest.warns(MatplotlibDeprecationWarning):
         proj3d.proj_trans_clip_points(np.ones((4, 3)), M)
+
+
+def test_ax3d_tickcolour():
+    fig = plt.figure()
+    ax = Axes3D(fig)
+
+    ax.tick_params(axis='x', colors='red')
+    ax.tick_params(axis='y', colors='red')
+    ax.tick_params(axis='z', colors='red')
+    fig.canvas.draw()
+
+    for tick in ax.xaxis.get_major_ticks():
+        assert tick.tick1line._color == 'red'
+    for tick in ax.yaxis.get_major_ticks():
+        assert tick.tick1line._color == 'red'
+    for tick in ax.zaxis.get_major_ticks():
+        assert tick.tick1line._color == 'red'
+
+
+@check_figures_equal(extensions=["png"])
+def test_ticklabel_format(fig_test, fig_ref):
+    axs = fig_test.subplots(4, 5, subplot_kw={"projection": "3d"})
+    for ax in axs.flat:
+        ax.set_xlim(1e7, 1e7 + 10)
+    for row, name in zip(axs, ["x", "y", "z", "both"]):
+        row[0].ticklabel_format(
+            axis=name, style="plain")
+        row[1].ticklabel_format(
+            axis=name, scilimits=(-2, 2))
+        row[2].ticklabel_format(
+            axis=name, useOffset=not mpl.rcParams["axes.formatter.useoffset"])
+        row[3].ticklabel_format(
+            axis=name, useLocale=not mpl.rcParams["axes.formatter.use_locale"])
+        row[4].ticklabel_format(
+            axis=name,
+            useMathText=not mpl.rcParams["axes.formatter.use_mathtext"])
+
+    def get_formatters(ax, names):
+        return [getattr(ax, name).get_major_formatter() for name in names]
+
+    axs = fig_ref.subplots(4, 5, subplot_kw={"projection": "3d"})
+    for ax in axs.flat:
+        ax.set_xlim(1e7, 1e7 + 10)
+    for row, names in zip(
+            axs, [["xaxis"], ["yaxis"], ["zaxis"], ["xaxis", "yaxis", "zaxis"]]
+    ):
+        for fmt in get_formatters(row[0], names):
+            fmt.set_scientific(False)
+        for fmt in get_formatters(row[1], names):
+            fmt.set_powerlimits((-2, 2))
+        for fmt in get_formatters(row[2], names):
+            fmt.set_useOffset(not mpl.rcParams["axes.formatter.useoffset"])
+        for fmt in get_formatters(row[3], names):
+            fmt.set_useLocale(not mpl.rcParams["axes.formatter.use_locale"])
+        for fmt in get_formatters(row[4], names):
+            fmt.set_useMathText(
+                not mpl.rcParams["axes.formatter.use_mathtext"])
+
+
+@check_figures_equal(extensions=["png"])
+def test_quiver3D_smoke(fig_test, fig_ref):
+    pivot = "middle"
+    # Make the grid
+    x, y, z = np.meshgrid(
+        np.arange(-0.8, 1, 0.2),
+        np.arange(-0.8, 1, 0.2),
+        np.arange(-0.8, 1, 0.8)
+    )
+    u = v = w = np.ones_like(x)
+
+    for fig, length in zip((fig_ref, fig_test), (1, 1.0)):
+        ax = fig.gca(projection="3d")
+        ax.quiver(x, y, z, u, v, w, length=length, pivot=pivot)

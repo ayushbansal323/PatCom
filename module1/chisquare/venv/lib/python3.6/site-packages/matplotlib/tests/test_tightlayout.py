@@ -2,6 +2,7 @@ import warnings
 
 import numpy as np
 from numpy.testing import assert_array_equal
+import pytest
 
 from matplotlib.testing.decorators import image_comparison
 import matplotlib.pyplot as plt
@@ -17,7 +18,7 @@ def example_plot(ax, fontsize=12):
     ax.set_title('Title', fontsize=fontsize)
 
 
-@image_comparison(baseline_images=['tight_layout1'])
+@image_comparison(['tight_layout1'])
 def test_tight_layout1():
     'Test tight_layout for a single subplot'
     fig, ax = plt.subplots()
@@ -25,7 +26,7 @@ def test_tight_layout1():
     plt.tight_layout()
 
 
-@image_comparison(baseline_images=['tight_layout2'])
+@image_comparison(['tight_layout2'])
 def test_tight_layout2():
     'Test tight_layout for multiple subplots'
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows=2, ncols=2)
@@ -36,57 +37,42 @@ def test_tight_layout2():
     plt.tight_layout()
 
 
-@image_comparison(baseline_images=['tight_layout3'])
+@image_comparison(['tight_layout3'])
 def test_tight_layout3():
     'Test tight_layout for multiple subplots'
-
-    fig = plt.figure()
-
     ax1 = plt.subplot(221)
     ax2 = plt.subplot(223)
     ax3 = plt.subplot(122)
-
     example_plot(ax1)
     example_plot(ax2)
     example_plot(ax3)
-
     plt.tight_layout()
 
 
-@image_comparison(baseline_images=['tight_layout4'],
-                  freetype_version=('2.5.5', '2.6.1'))
+@image_comparison(['tight_layout4'], freetype_version=('2.5.5', '2.6.1'))
 def test_tight_layout4():
     'Test tight_layout for subplot2grid'
-
-    fig = plt.figure()
-
     ax1 = plt.subplot2grid((3, 3), (0, 0))
     ax2 = plt.subplot2grid((3, 3), (0, 1), colspan=2)
     ax3 = plt.subplot2grid((3, 3), (1, 0), colspan=2, rowspan=2)
     ax4 = plt.subplot2grid((3, 3), (1, 2), rowspan=2)
-
     example_plot(ax1)
     example_plot(ax2)
     example_plot(ax3)
     example_plot(ax4)
-
     plt.tight_layout()
 
 
-@image_comparison(baseline_images=['tight_layout5'])
+@image_comparison(['tight_layout5'])
 def test_tight_layout5():
     'Test tight_layout for image'
-
-    fig = plt.figure()
-
     ax = plt.subplot(111)
     arr = np.arange(100).reshape((10, 10))
     ax.imshow(arr, interpolation="none")
-
     plt.tight_layout()
 
 
-@image_comparison(baseline_images=['tight_layout6'])
+@image_comparison(['tight_layout6'])
 def test_tight_layout6():
     'Test tight_layout for gridspec'
 
@@ -130,7 +116,7 @@ def test_tight_layout6():
                          h_pad=0.45)
 
 
-@image_comparison(baseline_images=['tight_layout7'])
+@image_comparison(['tight_layout7'])
 def test_tight_layout7():
     # tight layout with left and right titles
     fontsize = 24
@@ -144,7 +130,7 @@ def test_tight_layout7():
     plt.tight_layout()
 
 
-@image_comparison(baseline_images=['tight_layout8'])
+@image_comparison(['tight_layout8'])
 def test_tight_layout8():
     'Test automatic use of tight_layout'
     fig = plt.figure()
@@ -153,7 +139,7 @@ def test_tight_layout8():
     example_plot(ax, fontsize=24)
 
 
-@image_comparison(baseline_images=['tight_layout9'])
+@image_comparison(['tight_layout9'])
 def test_tight_layout9():
     # Test tight_layout for non-visible subplots
     # GH 8244
@@ -225,8 +211,7 @@ def add_offsetboxes(ax, size=10, margin=.1, color='black'):
     return anchored_box
 
 
-@image_comparison(baseline_images=['tight_layout_offsetboxes1',
-                                   'tight_layout_offsetboxes2'])
+@image_comparison(['tight_layout_offsetboxes1', 'tight_layout_offsetboxes2'])
 def test_tight_layout_offsetboxes():
     # 1.
     # - Create 4 subplots
@@ -267,30 +252,18 @@ def test_tight_layout_offsetboxes():
 
 
 def test_empty_layout():
-    """Tests that tight layout doesn't cause an error when there are
-    no axes.
-    """
-
+    """Test that tight layout doesn't cause an error when there are no axes."""
     fig = plt.gcf()
     fig.tight_layout()
 
 
-def test_verybig_decorators_horizontal():
-    "Test that warning emitted when xlabel too big"
+@pytest.mark.parametrize("label", ["xlabel", "ylabel"])
+def test_verybig_decorators(label):
+    """Test that warning emitted when xlabel/ylabel too big."""
     fig, ax = plt.subplots(figsize=(3, 2))
-    ax.set_xlabel('a' * 100)
-    with warnings.catch_warnings(record=True) as w:
+    ax.set(**{label: 'a' * 100})
+    with pytest.warns(UserWarning):
         fig.tight_layout()
-        assert len(w) == 1
-
-
-def test_verybig_decorators_vertical():
-    "Test that warning emitted when xlabel too big"
-    fig, ax = plt.subplots(figsize=(3, 2))
-    ax.set_ylabel('a' * 100)
-    with warnings.catch_warnings(record=True) as w:
-        fig.tight_layout()
-        assert len(w) == 1
 
 
 def test_big_decorators_horizontal():
@@ -298,9 +271,8 @@ def test_big_decorators_horizontal():
     fig, axs = plt.subplots(1, 2, figsize=(3, 2))
     axs[0].set_xlabel('a' * 30)
     axs[1].set_xlabel('b' * 30)
-    with warnings.catch_warnings(record=True) as w:
+    with pytest.warns(UserWarning):
         fig.tight_layout()
-        assert len(w) == 1
 
 
 def test_big_decorators_vertical():
@@ -308,20 +280,17 @@ def test_big_decorators_vertical():
     fig, axs = plt.subplots(2, 1, figsize=(3, 2))
     axs[0].set_ylabel('a' * 20)
     axs[1].set_ylabel('b' * 20)
-    with warnings.catch_warnings(record=True) as w:
+    with pytest.warns(UserWarning):
         fig.tight_layout()
-        assert len(w) == 1
 
 
 def test_badsubplotgrid():
-    # test that we get warning for mismatched subplot grids rather
-    # than an error
-    ax1 = plt.subplot2grid((4, 5), (0, 0))
+    # test that we get warning for mismatched subplot grids, not than an error
+    plt.subplot2grid((4, 5), (0, 0))
     # this is the bad entry:
-    ax5 = plt.subplot2grid((5, 5), (0, 3), colspan=3, rowspan=5)
-    with warnings.catch_warnings(record=True) as w:
+    plt.subplot2grid((5, 5), (0, 3), colspan=3, rowspan=5)
+    with pytest.warns(UserWarning):
         plt.tight_layout()
-        assert len(w) == 1
 
 
 def test_collapsed():
@@ -333,10 +302,10 @@ def test_collapsed():
 
     ax.annotate('BIG LONG STRING', xy=(1.25, 2), xytext=(10.5, 1.75),)
     p1 = ax.get_position()
-    with warnings.catch_warnings(record=True) as w:
+    with pytest.warns(UserWarning):
         plt.tight_layout()
         p2 = ax.get_position()
         assert p1.width == p2.width
-        assert len(w) == 1
     # test that passing a rect doesn't crash...
-    plt.tight_layout(rect=[0, 0, 0.8, 0.8])
+    with pytest.warns(UserWarning):
+        plt.tight_layout(rect=[0, 0, 0.8, 0.8])
