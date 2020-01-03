@@ -58,23 +58,23 @@ def Create_Summary( graph , common_features , document_1 , document_2 ):
 	return : list of strings , where first string is an summary of document_1 and second string is an summary of document_2 .
 	
 	'''
-	graph.remove_nodes_from( common_features ) ;  # remove common nodes from the tree
-	edges = list( graph.edges ) ;  # get all edges in the tree
+	graph.remove_nodes_from( common_features ) ;
+	edges = list( graph.edges ) ;  
 	
 	summary = [ "" , "" ] ; 
 	text = document_1 ;
-	ret = final_sentences( text , edges ) ;		# find sentences in the summary of document_1
+	ret = final_sentences( text , edges ) ;	
 	
 	for i in ret:
 		
-		summary[0] += i ;		# create summary of document_1
+		summary[0] += i ;
 	
 	text = document_2 ;
-	ret = final_sentences( text , edges ) ;		# find sentences in the summary of document_2
+	ret = final_sentences( text , edges ) ;	
 	
 	for i in ret:
 		
-		summary[1] += i ;		# create summary of document_2
+		summary[1] += i ;
 	
 	return summary ;
 
