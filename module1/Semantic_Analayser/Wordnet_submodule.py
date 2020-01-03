@@ -54,6 +54,12 @@ def countChild(syn, filtered):
 def wordnetModule(wordList):
     threshold = 0.2  # if 20 percent of words are similar to a word then it is considered
     filtered = []  # list without outliers
+
+    temp = []
+    for i in wordList:
+        if len(wn.synsets(i, 'n')) != 0:
+            temp.append(i)
+    wordList = temp
     # determine outliers, by calculating how many words are similar to given word
     for word in wordList:
         temp = wordSimilarity(word, wordList)
@@ -75,5 +81,3 @@ def wordnetModule(wordList):
 def test():
     wordList = ['dog', 'cat', 'domestic', 'goa', 'mammal', 'car', 'animal', 'pet']
     print(wordnetModule(wordList))
-
-
