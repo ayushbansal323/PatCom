@@ -27,7 +27,7 @@ if __name__ == "__main__":
     # Wordnet
 
     # passing all nouns present in both the documents.
-    print(list(doc1_feature_dic.keys())+list(doc2_feature_dic.keys()))
+    #print(list(doc1_feature_dic.keys())+list(doc2_feature_dic.keys()))
     # this gives div by 0 error.
     gen_and_comp_features, gen_features = Wordnet_submodule.wordnetModule(list(doc1_feature_dic.keys())+list(doc2_feature_dic.keys()))
 
@@ -36,15 +36,15 @@ if __name__ == "__main__":
     graph = module2_graph.generate_graph(nouns_doc1, nouns_doc2, "./Document_1.pdf", "./Document_2.pdf", 0.1)
     ###########################################
     #module 3
-    topfeatures = module2_graph.features_union(list(doc1_feature_dic.keys()), list(doc2_feature_dic.keys()))
+    #topfeatures = module2_graph.features_union(list(doc1_feature_dic.keys()), list(doc2_feature_dic.keys()))
     #module 3
     tree = tree_extraction.module3(graph, gen_and_comp_features)
 
     nx.draw_networkx(tree, nx.spring_layout(tree))
-    # nx.draw_circular(graph)
+    #nx.draw_circular(graph)
     plt.show()
     #module 4
-    # print(module_4.Create_Summary(nx.Graph(tree),gen_features,doc1,doc2))
+    print(module_4.Create_Summary(nx.Graph(tree),gen_features,doc1,doc2))
 
 
     # Module 1 Part 2

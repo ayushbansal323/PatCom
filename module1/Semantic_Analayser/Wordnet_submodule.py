@@ -14,7 +14,7 @@ except LookupError:
 def wordSimilarity(word, wordList):
     wordsyn = wn.synsets(word, 'n')
     similarity = [0] * len(wordsyn)  # to determine similarity with all synsets
-    threshold = 0.5  # minimum similarity index required
+    threshold = 0.3  # minimum similarity index required
 
     for i in range(len(wordsyn)):
         for jword in wordList:
@@ -35,7 +35,7 @@ def wordSimilarity(word, wordList):
 #             (@list : filtered) each element in list contains word, synset, similar words
 # Output     : (@integer : child) Number of child a word has which are present in '@filtered'
 def countChild(syn, filtered):
-    threshold = 0.5  # minimum similarity index required
+    threshold = 0.3  # minimum similarity index required
     child = 0
 
     for _, feature, _ in filtered:
@@ -52,7 +52,7 @@ def countChild(syn, filtered):
 # Output     : (@list of string: ret[0]) containing general features + comparitive features
 #             (@list of string: ret[1]) general features
 def wordnetModule(wordList):
-    threshold = 0.2  # if 20 percent of words are similar to a word then it is considered
+    threshold = 0.1  # if 20 percent of words are similar to a word then it is considered
     filtered = []  # list without outliers
 
     temp = []
@@ -68,7 +68,7 @@ def wordnetModule(wordList):
 
     # determine general or common features
     generalFeature = []
-    general_feature_threshold = 0.2  # if 20 percent features in document are children of any feature then it is general feature
+    general_feature_threshold = 0.1  # if 20 percent features in document are children of any feature then it is general feature
     # check how many childrens does a word have
     for temp in filtered:
         child = countChild(temp[1], filtered)
