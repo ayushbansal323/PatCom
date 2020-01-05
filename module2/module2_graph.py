@@ -4,6 +4,11 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 
+def connected_component_subgraphs(G):
+    for c in nx.connected_components(G):
+        yield G.subgraph(c)
+
+
 # function defined in read.py
 def read_document2(path):
     """
@@ -101,6 +106,7 @@ def generate_graph(features1, features2, document_path1, document_path2, thresho
     :return: graph
     """
     features = features_union(features1, features2)
+    features.sort()
     document_lines1 = read_document2(document_path1)
     document_lines2 = read_document2(document_path2)
     score1 = find_scores(features, document_path1)
@@ -108,6 +114,10 @@ def generate_graph(features1, features2, document_path1, document_path2, thresho
     # print(score1)
     # print(score2)
     graph = nx.Graph()
+
+    for i in range(len(features)):
+        graph.add_node(features[i])
+
     for i in range(len(features)):
         for j in range(i + 1, len(features)):
             link_score1 = linkage_score(features[i], features[j], document_lines1, score1[features[i]],
@@ -118,9 +128,10 @@ def generate_graph(features1, features2, document_path1, document_path2, thresho
             if link_score > threshold_value:
                 graph.add_edge(features[i], features[j])
             # print(link_score)
-    #nx.draw_networkx(graph, nx.spring_layout(graph))
+    graph = max(connected_component_subgraphs(graph), key=len)
+    nx.draw_networkx(graph, nx.spring_layout(graph))
     # nx.draw_circular(graph)
-    #plt.show()
+    plt.show()
     # print(graph.number_of_nodes())
     # print(graph.number_of_edges())
 

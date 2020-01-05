@@ -29,7 +29,14 @@ if __name__ == "__main__":
     # passing all nouns present in both the documents.
     #print(list(doc1_feature_dic.keys())+list(doc2_feature_dic.keys()))
     # this gives div by 0 error.
-    gen_and_comp_features, gen_features = Wordnet_submodule.wordnetModule(list(doc1_feature_dic.keys())+list(doc2_feature_dic.keys()))
+    nouns_doc1.sort()
+    nouns_doc2.sort()
+    feature_dic1 = list(doc1_feature_dic.keys())
+    feature_dic2 = list(doc2_feature_dic.keys())
+    feature_dic1.sort()
+    feature_dic2.sort()
+    gen_and_comp_features, gen_features = Wordnet_submodule.wordnetModule(feature_dic1+feature_dic2)
+    gen_and_comp_features.sort()
 
 
     #module 2 called
