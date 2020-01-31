@@ -77,6 +77,28 @@ def wordnetModule(wordList):
 
     return [x[0] for x in filtered], [x[0] for x in generalFeature]
 
+def calculate_score(list1, list2):
+    score1 = {}  # list without outliers
+    score2 = {}
+    temp = []
+    for i in list1:
+        if len(wn.synsets(i, 'n')) != 0:
+            temp.append(i)
+    list1 = temp
+    temp = []
+    for i in list2:
+        if len(wn.synsets(i, 'n')) != 0:
+            temp.append(i)
+    list2 = temp
+
+    # determine outliers, by calculating how many words are similar to given word
+    for word in list1:
+        temp = wordSimilarity(word, list2)
+        score1[word] = temp[2]
+    for word in list2:
+        temp = wordSimilarity(word, list1)
+        score2[word] = temp[2]
+    return score1,score2
 
 def test():
     wordList = ['dog', 'cat', 'domestic', 'goa', 'mammal', 'car', 'animal', 'pet']

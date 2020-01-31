@@ -29,14 +29,11 @@ if __name__ == "__main__":
     # passing all nouns present in both the documents.
     #print(list(doc1_feature_dic.keys())+list(doc2_feature_dic.keys()))
     # this gives div by 0 error.
-    nouns_doc1.sort()
-    nouns_doc2.sort()
     feature_dic1 = list(doc1_feature_dic.keys())
     feature_dic2 = list(doc2_feature_dic.keys())
     feature_dic1.sort()
     feature_dic2.sort()
     gen_and_comp_features, gen_features = Wordnet_submodule.wordnetModule(feature_dic1+feature_dic2)
-    gen_and_comp_features.sort()
 
 
     #module 2 called
@@ -51,8 +48,8 @@ if __name__ == "__main__":
     #nx.draw_circular(graph)
     plt.show()
     #module 4
-    print(module_4.Create_Summary(nx.Graph(tree),gen_features,doc1,doc2))
-
+    ans = module_4.Create_Summary(nx.Graph(tree),gen_features,doc1,doc2)
+    print(ans)
 
     # Module 1 Part 2
     # Wordnet - this will return 2 list. Give the 1st list to 3rd module and 2nd list to 4th module.
