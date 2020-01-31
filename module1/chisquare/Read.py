@@ -25,18 +25,44 @@ def read_document(path):
 
 	return output
 
-def read_claims(document):
-	claims = []
-	indicator = 0
+def read_components(document):
+		
+	'''
+	input : An list of sentences return by read_document
+	output : List of List of strings , where first list is list of strings in abstract , second list is list of strings in description and third list is list of strings in
+		claim section
+	
+	'''
+	components = []
+	i = 0
+	length = len(document)
+	temp = []
 
-	for i in document:
-		if(i.find(' claimed ')!=-1):
-			indicator = 1
-
-		if(indicator):
-			claims.append(i)
-
-	return claims
+	while( i < length ):
+		if( 'Claims' in document[i] ):
+			break
+		else:
+			temp.append(document[i])
+		
+		i += 1
+	
+	components.append(list(temp))
+	temp_1 = []
+	temp_2 = []
+	claim_words = ['claimed' , 'claims' , 'claim']
+	
+	while(i < length):
+		
+		if( any( j in document[i] for j in claim_words ) ):
+			temp_2.append(document[i])
+		else:
+			temp_1.append(document[i])
+		
+		i += 1
+	
+	components.append(list(temp_1))
+	components.append(list(temp_2))
+	return components
 
 def main():
 	document = read_document('../../Document_1.pdf');
@@ -45,9 +71,9 @@ def main():
 
 	print("********************************")
 
-	claims = read_claims(document)
+	components = read_components(document)
 
-	for i in claims:
+	for i in components:
 		print(i)
 
 	if __name__=="__main__":
