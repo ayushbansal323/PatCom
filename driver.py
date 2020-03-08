@@ -42,6 +42,10 @@ if __name__ == "__main__":
     #module 3
     #topfeatures = module2_graph.features_union(list(doc1_feature_dic.keys()), list(doc2_feature_dic.keys()))
     #module 3
+    gen_and_comp_features.sort()
+    #print(gen_and_comp_features)
+    edges = sorted(graph.edges(data=True), key=lambda t: t[2].get('weight', 1))
+    #print(edges)
     tree = tree_extraction.module3(graph, gen_and_comp_features)
 
     nx.draw_networkx(tree, nx.spring_layout(tree))

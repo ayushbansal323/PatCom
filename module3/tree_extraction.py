@@ -4,5 +4,5 @@ from networkx.algorithms.approximation.steinertree import steiner_tree
 #           : (@list of string : topFeatuers) discrimitive features of two documents
 #Output     : (@networkx.steiner_tree) Steiner tree
 def module3(G, topFeatures):
-    sT = steiner_tree(G, topFeatures)
+    sT = steiner_tree(G, topFeatures, weight='weight')
     return sT

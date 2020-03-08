@@ -2,7 +2,8 @@ import PyPDF2
 import regex
 import networkx as nx
 import matplotlib.pyplot as plt
-
+from nltk.corpus import wordnet as wn
+from nltk.stem import WordNetLemmatizer
 
 def connected_component_subgraphs(G):
     for c in nx.connected_components(G):
@@ -114,6 +115,7 @@ def generate_graph(features1, features2, document_path1, document_path2, thresho
     # print(score1)
     # print(score2)
     graph = nx.Graph()
+    lemmatizer = WordNetLemmatizer()
 
     for i in range(len(features)):
         graph.add_node(features[i])
@@ -126,7 +128,22 @@ def generate_graph(features1, features2, document_path1, document_path2, thresho
                                         score2[features[j]])
             link_score = (link_score1 + link_score2) / 2
             if link_score > threshold_value:
-                graph.add_edge(features[i], features[j])
+                temp1=wn.synsets(lemmatizer.lemmatize(features[i]))
+                temp2=wn.synsets(lemmatizer.lemmatize(features[j]))
+                if len(temp2) == 0 or len(temp1) == 0:
+                    if len(temp2) == 0 and len(temp1) == 0:
+                        graph.add_edge(features[i], features[j], weight=link_score)
+                    else:
+                        graph.add_edge(features[i], features[j], weight=(link_score+0.001))
+                else:
+                    wup_score = temp1[0].wup_similarity(temp2[0])
+                    #print(wup_score)
+                    if wup_score == None:
+                        graph.add_edge(features[i], features[j], weight=(link_score+0.002))
+                    else:
+                        graph.add_edge(features[i], features[j], weight=(link_score+(wup_score/10)))
+                #print(features[i]+ features[j])
+                #print(graph.get_edge_data(features[i], features[j]))
             # print(link_score)
     graph = max(connected_component_subgraphs(graph), key=len)
     nx.draw_networkx(graph, nx.spring_layout(graph))
