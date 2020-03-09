@@ -131,6 +131,7 @@ def generate_graph(features1, features2, document_path1, document_path2, thresho
                 temp1=wn.synsets(lemmatizer.lemmatize(features[i]))
                 temp2=wn.synsets(lemmatizer.lemmatize(features[j]))
                 if len(temp2) == 0 or len(temp1) == 0:
+                    print(features[i]+"\t"+features[j])
                     if len(temp2) == 0 and len(temp1) == 0:
                         graph.add_edge(features[i], features[j], weight=link_score)
                     else:

@@ -56,9 +56,12 @@ def wordnetModule(wordList):
     filtered = []  # list without outliers
 
     temp = []
+    outliers = []
     for i in wordList:
         if len(wn.synsets(i, 'n')) != 0:
             temp.append(i)
+        else:
+            outliers.append(i)
     wordList = temp
     # determine outliers, by calculating how many words are similar to given word
     for word in wordList:
@@ -75,7 +78,7 @@ def wordnetModule(wordList):
         if child / len(wordList) >= general_feature_threshold:
             generalFeature.append([temp[0], child])
 
-    return [x[0] for x in filtered], [x[0] for x in generalFeature]
+    return [x[0] for x in filtered]+outliers, [x[0] for x in generalFeature]
 
 def calculate_score(list1, list2):
     score1 = {}  # list without outliers
