@@ -6,19 +6,20 @@ from module2 import module2_graph
 from module3 import tree_extraction
 from module4 import module_4
 import matplotlib.pyplot as plt
+import os
 
-if __name__ == "__main__":
+def driver_code( doc1 , doc2 ):
     # Module 1 Part 1
     # Read and Chi-Square
 
-    import os
+    #import os
     doc1 = read_document("./Document_1.pdf")
     doc2 = read_document("./Document_2.pdf")
     #print(doc1 , doc2)
     # if needed change threshold in Extract_Features.py
     doc1_feature_dic, doc2_feature_dic, nouns_doc1, nouns_doc2 = module1(doc1, doc2)
     #print(nouns_doc2)
-
+	
     #print(doc1_feature_dic)
     print("*"*50)
     #print(doc2_feature_dic)
@@ -48,12 +49,13 @@ if __name__ == "__main__":
     #print(edges)
     tree = tree_extraction.module3(graph, gen_and_comp_features)
 
-    nx.draw_networkx(tree, nx.spring_layout(tree))
+    #nx.draw_networkx(tree, nx.spring_layout(tree))
     #nx.draw_circular(graph)
-    plt.show()
+    #plt.show()
     #module 4
     ans = module_4.Create_Summary(nx.Graph(tree),gen_features,doc1,doc2)
-    print(ans)
+    #print(ans)
+    return ans
 
     # Module 1 Part 2
     # Wordnet - this will return 2 list. Give the 1st list to 3rd module and 2nd list to 4th module.
