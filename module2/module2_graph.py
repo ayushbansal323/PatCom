@@ -124,7 +124,6 @@ def generate_graph(features1, features2, document_lines1, document_lines2, thres
     graph = max(connected_component_subgraphs(graph), key=len)
     #nx.draw_networkx(graph, nx.spring_layout(graph))
     #plt.show()
-    # nx.draw_circular(graph)
     
     # print(graph.number_of_nodes())
     # print(graph.number_of_edges())

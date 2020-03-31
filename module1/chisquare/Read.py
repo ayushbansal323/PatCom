@@ -76,7 +76,7 @@ def main():
 	for i in components:
 		print(i)
 
-	if __name__=="__main__":
-		main()    
-		
+if __name__=="__main__":
+	main()
+
 
