@@ -8,13 +8,13 @@ from module4 import module_4
 import matplotlib.pyplot as plt
 import os
 
-def driver_code( doc1 , doc2 ):
+def driver_code( doc1_path , doc2_path ):
     # Module 1 Part 1
     # Read and Chi-Square
 
     #import os
-    doc1 = read_document("./Document_1_.pdf")
-    doc2 = read_document("./Document_2_.pdf")
+    doc1 = read_document( doc1_path )
+    doc2 = read_document( doc2_path )
     #print(doc1 , doc2)
     # if needed change threshold in Extract_Features.py
     doc1_feature_dic, doc2_feature_dic, nouns_doc1, nouns_doc2 = module1(doc1, doc2)
