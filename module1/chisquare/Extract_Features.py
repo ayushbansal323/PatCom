@@ -5,7 +5,7 @@ import traceback
 import nltk
 
 # decrese this threshold to increses the number of features
-CHI_THRESHOLD = 0.01
+CHI_THRESHOLD = 0.02
 
 # returns lemmatized nouns in lower case
 def getLemmatizedNouns(document):

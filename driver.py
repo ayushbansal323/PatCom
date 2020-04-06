@@ -38,7 +38,7 @@ def driver_code( doc1_path , doc2_path ):
 
 
     #module 2 called
-    graph = module2_graph.generate_graph(nouns_doc1, nouns_doc2, doc1, doc2, 0.1)
+    graph = module2_graph.generate_graph(nouns_doc1, nouns_doc2, doc1, doc2, 0.13)
     ###########################################
     #module 3
     #topfeatures = module2_graph.features_union(list(doc1_feature_dic.keys()), list(doc2_feature_dic.keys()))
