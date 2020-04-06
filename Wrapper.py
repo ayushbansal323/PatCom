@@ -48,12 +48,12 @@ def generate_summaries():
 		
 		file_names.append( i )
 		summaries = get_summaries()
-		text.insert( INSERT , "The Summary Of Document 1 is -\n\n" )
+		text.insert( INSERT , "The Summary Of ( " + file_names[0] + " ) is \n\n" )
 		text.insert( INSERT , summaries[0] + '.' )
 		text.insert( INSERT, "\n\n")
-		text.insert( INSERT , "The Summary Of Document 2 is -\n\n" )
+		text.insert( INSERT , "The Summary Of ( " + file_names[1] + " ) is \n\n" )
 		text.insert( INSERT, summaries[1] + '.' )
-		text.insert( INSERT, "\n\n")
+		text.insert( INSERT, "\n------------------------------------------------------------------------------------------------------------\n\n")
 		file_names.pop()
 	
 	text.pack(expand=True, fill=BOTH)
