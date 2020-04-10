@@ -12,18 +12,21 @@ sample_files = []
 
 def get_file_name():
 	
+	global file_names
+	file_names = []
 	file_name = askopenfilename()
 	file_names.append( file_name )
 
 def get_directory_path():
 	
+	global sample_files
 	directory_path = askdirectory()
 	files = listdir( directory_path )
+	sample_files = []
 	
 	for i in files:
 		
 		sample_files.append( directory_path + '/' + i )
-	print( sample_files )
 	
 
 def clean_output( string ):
@@ -33,13 +36,14 @@ def clean_output( string ):
 
 def get_summaries():
 	
+	global summaries
 	summaries = driver.driver_code( file_names[0] , file_names[1] )
 	summaries[0] = clean_output( summaries[0] )
 	summaries[1] = clean_output( summaries[1] )
-	return summaries
 
 def generate_summaries():
 	
+	global file_names
 	summary_window = Tk()
 	summary_window.geometry( '800x800' )
 	text = Text( summary_window )
@@ -47,7 +51,7 @@ def generate_summaries():
 	for i in sample_files:
 		
 		file_names.append( i )
-		summaries = get_summaries()
+		get_summaries()
 		text.insert( INSERT , "The Summary Of ( " + file_names[0] + " ) is \n\n" )
 		text.insert( INSERT , summaries[0] + '.' )
 		text.insert( INSERT, "\n\n")
