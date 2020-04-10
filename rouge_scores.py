@@ -1,5 +1,6 @@
 from rouge import Rouge
 from rouge_score import rouge_scorer
+import matplotlib.pyplot as plt
 
 
 def rouge_score_us299_vs_us253():
@@ -89,6 +90,7 @@ def rouge_score_us299_vs_us253():
     scores = scorer.score(reference_us299, hypothesis_patcom_us299)
     dic['Patent Comparision'] = (dic['Patent Comparision'] + scores['rouge1'].fmeasure) / 2
     print(dic)
+    return dic
 
 
 def rouge_score_us299_vs_us520():
@@ -168,6 +170,7 @@ def rouge_score_us299_vs_us520():
     scores = scorer.score(reference_us520, hypothesis_patcom_us520)
     dic['Patent Comparision'] = (dic['Patent Comparision'] + scores['rouge1'].fmeasure) / 2
     print(dic)
+    return dic
 
 
 def rouge_score_us689_vs_us775():
@@ -254,9 +257,27 @@ def rouge_score_us689_vs_us775():
     scores = scorer.score(reference_us775, hypothesis_patcom_us775)
     dic['Patent Comparision'] = (dic['Patent Comparision'] + scores['rouge1'].fmeasure) / 2
     print(dic)
+    return dic
 
 
 if __name__ == '__main__':
-    rouge_score_us299_vs_us253()
-    rouge_score_us299_vs_us520()
-    rouge_score_us689_vs_us775()
+    score = {}
+    score["Patent comparision"] = []
+    score["Patcom"] = []
+    score1=rouge_score_us299_vs_us253()
+    score2=rouge_score_us299_vs_us520()
+    score3=rouge_score_us689_vs_us775()
+
+    score["Patent comparision"].append(score1["Patent Comparision"])
+    score["Patcom"].append(score1["Patcom"])
+
+    score["Patent comparision"].append(score2["Patent Comparision"])
+    score["Patcom"].append(score2["Patcom"])
+
+    score["Patent comparision"].append(score3["Patent Comparision"])
+    score["Patcom"].append(score3["Patcom"])
+
+    plt.plot(["us299_vs_us253","us299_vs_us520","us689_vs_us775"],score["Patent comparision"], label = "Patent comparision")
+    plt.plot(["us299_vs_us253","us299_vs_us520","us689_vs_us775"],score["Patcom"], label = "Patcom")
+    plt.legend()
+    plt.show()
