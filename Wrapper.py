@@ -72,8 +72,8 @@ if __name__ == '__main__':
 	main_window.geometry( '800x500' )
 	main_window.grid_columnconfigure(2, weight=1)
 
-	l1 = Label( main_window , text="PATCOM", fg = "light green", bg = "dark green" , height = 2 , width = 30)
-	l1.config(font=("Courier", 60 ))
+	l1 = Label( main_window , text="Patent Document Comparison System", fg = "light green", bg = "dark green" , height = 3 , width = 40)
+	l1.config(font=("Courier", 25 ))
 	l1.place(relx=0.5, rely=0.2, anchor=CENTER)
 
 	bt_1 = Button(main_window, text='Select Test File', command = get_file_name )
