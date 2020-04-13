@@ -11,25 +11,15 @@ import os
 def driver_code( doc1_path , doc2_path ):
     # Module 1 Part 1
     # Read and Chi-Square
-
-    #import os
     doc1 = read_document( doc1_path )
     doc2 = read_document( doc2_path )
-    #print(doc1 , doc2)
     # if needed change threshold in Extract_Features.py
     doc1_feature_dic, doc2_feature_dic, nouns_doc1, nouns_doc2 = module1(doc1, doc2)
-    #print(nouns_doc2)
-	
-    #print(doc1_feature_dic)
     print("*"*50)
-    #print(doc2_feature_dic)
 
     # Module 1 Part 2
     # Wordnet
-
     # passing all nouns present in both the documents.
-    #print(list(doc1_feature_dic.keys())+list(doc2_feature_dic.keys()))
-    # this gives div by 0 error.
     feature_dic1 = list(doc1_feature_dic.keys())
     feature_dic2 = list(doc2_feature_dic.keys())
     feature_dic1.sort()
@@ -39,25 +29,12 @@ def driver_code( doc1_path , doc2_path ):
 
     #module 2 called
     graph = module2_graph.generate_graph(nouns_doc1, nouns_doc2, doc1, doc2, 0.13)
-    ###########################################
-    #module 3
-    #topfeatures = module2_graph.features_union(list(doc1_feature_dic.keys()), list(doc2_feature_dic.keys()))
+
     #module 3
     gen_and_comp_features.sort()
-    #print(gen_and_comp_features)
     edges = sorted(graph.edges(data=True), key=lambda t: t[2].get('weight', 1))
-    #print(edges)
     tree = tree_extraction.module3(graph, gen_and_comp_features)
 
-    #nx.draw_networkx(tree, nx.spring_layout(tree))
-    #plt.show()
     #module 4
     ans = module_4.Create_Summary(nx.Graph(tree),gen_features,doc1,doc2)
-    #print(ans)
     return ans
-
-    # Module 1 Part 2
-    # Wordnet - this will return 2 list. Give the 1st list to 3rd module and 2nd list to 4th module.
-
-
-
