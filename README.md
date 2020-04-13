@@ -1,40 +1,16 @@
-# PatCom
-Patcom
+Patent Document comparision system
 
-The project is divided into 4 module
-project modules must be kept in there respective directory
+The project is divided into 4 module each module is kept in their respective directory.
+'driver.py' contains the driver function which takes input as 2 pdf document and outputs their comparative summary.
+All the requirements are noted in 'requirement.txt'.
+The program to calculate rouge score is present in 'rouge_score.py'
+'wrapper.py' is the GUI for project.
+Patents for testing are present in 'patent_documents' folder.
 
-Create a README.md file explaining you module input parameters and output parameters.4
-
-patcomreference contain the old code fro the reference
-
-
-basic git command
-
-for downloading the project first time
-> git clone https://github.com/ayushbansal323/PatCom.git
-
-for pull the changes (recommended to do this everyday before doing changes)
-> git pull
-
-for adding and commiting the file (for thr first time you need to config your git)
-> git add *
-
-OR 
-> git add filename
-
-> git commit -m "commit message"
-
-> git push
-
-Instruction to follow while git commit
-
-https://confluence.atlassian.com/bitbucket/use-smart-commits-298979931.html#UseSmartCommits-comment
-
-commit message should be in form
-
-##### git commit -m  "<issue_id> #open/#close #comment message" 
-##### eg1: git commit -m "PAT-5 #open #comment task opened"
-##### eg2: git commit -m "PAT-5 #close #time 5h #comment task finished"
-
-<issue_id> can be found in jira with the assigned role
+Steps to run:
+1. Make sure that system has all requirements fulfilled as given in 'requirement.txt'
+2. Run 'wrapper.py'
+3. Input :
+        GUI would require one pdf document which the system would compare every other document with.
+        And the second input would be the path of the directory in which other documents are present which are to be compared.
+4. On clicking 'generate summaries' button it would output the summaries.
