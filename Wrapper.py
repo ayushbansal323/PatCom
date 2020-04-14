@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
 	main_window = Tk()
 	main_window.title( "Patcom" )
-	main_window.geometry( '800x500' )
+	main_window.geometry( '850x550' )
 	main_window.grid_columnconfigure(2, weight=1)
 
 	l1 = Label( main_window , text="Patent Document Comparison System", fg = "light green", bg = "dark green" , height = 3 , width = 40)
