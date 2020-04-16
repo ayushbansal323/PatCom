@@ -7,6 +7,12 @@ The program to calculate rouge score is present in 'rouge_score.py'
 'wrapper.py' is the GUI for project.
 Patents for testing are present in 'patent_documents' folder.
 
+Prerequisite:
+The nltk package should be installed completely or else it would generate lookup error.
+To avoid that, execute below 2 lines of code in python after installing nltk,
+    import nltk
+    nltk.download('all') in python
+
 Steps to run:
 1. Make sure that system has all requirements fulfilled as given in 'requirement.txt'
 2. Run 'wrapper.py'
