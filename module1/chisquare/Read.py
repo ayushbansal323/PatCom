@@ -69,7 +69,7 @@ def main():
 
 	print(document)
 
-	print("********************************")
+	print("*********************************")
 
 	components = read_components(document)
 
